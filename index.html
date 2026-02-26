@@ -688,15 +688,19 @@ function localSave(data) { localStorage.setItem(localKey(), JSON.stringify(data)
 // ══════════════════════════════════════════════════════
 // LOAD DUES — Realtime Database compat
 // ══════════════════════════════════════════════════════
-let __dbListener = null;
+let __dbRef      = null;
+let __dbCallback = null;
 function loadDues() {
   if (!currentUID) return;
-  // Detach previous listener
-  if (__dbListener) { __dbListener(); __dbListener = null; }
+  // Properly detach previous listener before switching
+  if (__dbRef && __dbCallback) {
+    __dbRef.off('value', __dbCallback);
+    __dbRef = null; __dbCallback = null;
+  }
 
   try {
-    const dbRef = firebase.database().ref(`dues/${currentUID}/${currentStore}`);
-    __dbListener = dbRef.on('value', snap => {
+    __dbRef = firebase.database().ref(`dues/${currentUID}/${currentStore}`);
+    __dbCallback = __dbRef.on('value', snap => {
       const data = snap.val();
       allDues = data
         ? Object.entries(data).map(([id, v]) => ({ id, ...v }))
