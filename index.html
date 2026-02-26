@@ -306,7 +306,7 @@ body.light .supplier-cell { color: #4a5270; }
 #store-splash {
   position: fixed; inset: 0;
   background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
+  display: none; align-items: center; justify-content: center;
   z-index: 9000;
   transition: opacity .4s, transform .4s;
 }
@@ -407,6 +407,67 @@ body.light .supplier-cell { color: #4a5270; }
   white-space: nowrap;
 }
 .threshold-clear-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+/* PASSWORD SPLASH */
+#pw-splash {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9100;
+  transition: opacity .4s, transform .4s;
+}
+#pw-splash.hiding { opacity: 0; transform: scale(1.04); pointer-events: none; }
+.pw-box {
+  text-align: center; max-width: 360px; width: 90%; padding: 0 16px;
+}
+.pw-logo {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem;
+  color: var(--accent); letter-spacing: -1px; margin-bottom: 6px;
+}
+.pw-logo span { color: var(--text); }
+.pw-subtitle { font-size: 0.75rem; color: var(--muted); margin-bottom: 40px; letter-spacing: .5px; }
+.pw-lock { font-size: 2.8rem; margin-bottom: 20px; }
+.pw-prompt {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+}
+.pw-input-wrap { position: relative; margin-bottom: 12px; }
+.pw-input-wrap input {
+  width: 100%; padding: 14px 48px 14px 18px;
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 1rem;
+  outline: none; transition: border-color .2s; text-align: center;
+  letter-spacing: 3px;
+}
+.pw-input-wrap input:focus { border-color: var(--accent); }
+.pw-input-wrap input.pw-error { border-color: var(--danger); animation: pwShake .3s ease; }
+.pw-toggle {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 1rem; padding: 4px;
+}
+@keyframes pwShake {
+  0%,100% { transform: translateX(0); }
+  20%,60%  { transform: translateX(-8px); }
+  40%,80%  { transform: translateX(8px); }
+}
+.pw-btn {
+  width: 100%; padding: 14px; background: var(--accent); color: #0d0f14;
+  border: none; border-radius: 12px; font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 0.95rem; letter-spacing: 1px;
+  cursor: pointer; transition: opacity .2s, transform .15s; margin-bottom: 12px;
+}
+.pw-btn:hover { opacity: .88; transform: translateY(-1px); }
+.pw-error-msg {
+  font-size: 0.72rem; color: var(--danger); min-height: 18px;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+}
+.pw-hint { font-size: 0.62rem; color: var(--muted); margin-top: 24px; }
+
+/* Change password section in settings */
+.pw-change-row { display: flex; gap: 8px; align-items: flex-end; }
+.pw-change-row > div { flex: 1; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -589,6 +650,17 @@ body.light .supplier-cell { color: #4a5270; }
       <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">To get a Chat ID: forward a message to <strong style="color:#3ab4e8">@userinfobot</strong> on Telegram.</div>
     </div>
 
+    <!-- Change Password -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔑 App Password</div>
+      <div class="pw-change-row">
+        <div><label>NEW PASSWORD</label><input type="password" id="s-pw-new" placeholder="Enter new password"></div>
+        <div><label>CONFIRM</label><input type="password" id="s-pw-confirm" placeholder="Confirm password"></div>
+        <button class="save-token-btn" onclick="changeAppPassword()">SAVE</button>
+      </div>
+      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">Changing the password will apply to all devices on next login.</div>
+    </div>
+
     <button class="save-token-btn" style="width:100%;margin-top:4px;" onclick="closeSettings()">DONE</button>
   </div>
 </div>
@@ -607,6 +679,25 @@ body.light .supplier-cell { color: #4a5270; }
   </div>
 </div>
 
+
+<!-- ═══════════ PASSWORD SPLASH ═══════════ -->
+<div id="pw-splash">
+  <div class="pw-box">
+    <div class="pw-logo">Dues<span>Track</span></div>
+    <div class="pw-subtitle">Monthly Payment Tracker</div>
+    <div class="pw-lock">🔒</div>
+    <div class="pw-prompt">Enter Password to Continue</div>
+    <div class="pw-input-wrap">
+      <input type="password" id="pw-input" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')submitPassword()"
+             oninput="clearPwError()">
+      <button class="pw-toggle" onclick="togglePwVisibility()" id="pw-eye" tabindex="-1">👁</button>
+    </div>
+    <button class="pw-btn" onclick="submitPassword()">UNLOCK</button>
+    <div class="pw-error-msg" id="pw-error"></div>
+    <div class="pw-hint">Contact the administrator if you forgot the password.</div>
+  </div>
+</div>
 
 <!-- ═══════════ STORE SPLASH ═══════════ -->
 <div id="store-splash">
@@ -634,6 +725,73 @@ body.light .supplier-cell { color: #4a5270; }
 
 <script>
 // ══════════════════════════════════════════════════════
+// PASSWORD SYSTEM
+// ══════════════════════════════════════════════════════
+const DEFAULT_PASSWORD = 'duestrack2025';
+
+function getStoredPasswordHash() {
+  return localStorage.getItem('app_pw_hash') || simpleHash(DEFAULT_PASSWORD);
+}
+
+function simpleHash(str) {
+  // Lightweight non-crypto hash — good enough for app-level access control
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return h.toString(16);
+}
+
+function submitPassword() {
+  const input = document.getElementById('pw-input');
+  const val   = input.value;
+  if (!val) { showPwError('Please enter a password.'); return; }
+  if (simpleHash(val) === getStoredPasswordHash()) {
+    // Correct — store session auth and proceed
+    sessionStorage.setItem('pw_authed', '1');
+    const splash = document.getElementById('pw-splash');
+    splash.classList.add('hiding');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      // Now show the store selector
+      document.getElementById('store-splash').style.display = 'flex';
+    }, 420);
+  } else {
+    showPwError('Incorrect password. Try again.');
+    input.classList.add('pw-error');
+    input.value = '';
+    setTimeout(() => input.classList.remove('pw-error'), 600);
+  }
+}
+
+function showPwError(msg) {
+  document.getElementById('pw-error').textContent = msg;
+}
+function clearPwError() {
+  document.getElementById('pw-error').textContent = '';
+}
+
+function togglePwVisibility() {
+  const inp = document.getElementById('pw-input');
+  const eye = document.getElementById('pw-eye');
+  if (inp.type === 'password') { inp.type = 'text';     eye.textContent = '🙈'; }
+  else                         { inp.type = 'password'; eye.textContent = '👁';  }
+}
+
+function changeAppPassword() {
+  const nw  = document.getElementById('s-pw-new').value.trim();
+  const cfm = document.getElementById('s-pw-confirm').value.trim();
+  if (!nw)        { showToast('Enter a new password.', 'error'); return; }
+  if (nw.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
+  if (nw !== cfm) { showToast('Passwords do not match.', 'error'); return; }
+  localStorage.setItem('app_pw_hash', simpleHash(nw));
+  document.getElementById('s-pw-new').value    = '';
+  document.getElementById('s-pw-confirm').value = '';
+  showToast('Password changed! ✅ All devices will need the new password.', 'success');
+}
+
+// ══════════════════════════════════════════════════════
 // THEME
 // ══════════════════════════════════════════════════════
 function applyTheme(t) {
@@ -649,6 +807,12 @@ function toggleTheme() {
 // STORE SPLASH
 // ══════════════════════════════════════════════════════
 function pickStore(s) {
+  // Guard: password must be verified first
+  if (sessionStorage.getItem('pw_authed') !== '1') {
+    document.getElementById('store-splash').style.display = 'none';
+    document.getElementById('pw-splash').style.display = 'flex';
+    return;
+  }
   currentStore = s;
   loadThreshold();
   // Update header buttons and pill
@@ -860,16 +1024,25 @@ function getOrCreateDeviceUID() {
 function initApp() {
   const badge = document.getElementById('uid-badge');
 
-  // Apply saved theme
+  // Apply saved theme first (before any screen shows)
   applyTheme(localStorage.getItem('theme') || 'dark');
 
   currentUID = getOrCreateDeviceUID();
-  badge.textContent = 'ID: ' + currentUID.slice(0, 14) + '...';
-  badge.title = 'Click to copy Device ID';
-  badge.style.cursor = 'pointer';
-  badge.onclick = () => {
-    navigator.clipboard.writeText(currentUID).then(() => showToast('Device ID copied! 📋', 'success'));
-  };
+  badge.textContent = '🔗 Shared Database';
+  badge.title = 'All devices share the same data';
+  badge.style.color = 'var(--success)';
+
+  // Check if already authenticated this session
+  if (sessionStorage.getItem('pw_authed') === '1') {
+    // Skip password screen — hide it immediately
+    const pwSplash = document.getElementById('pw-splash');
+    pwSplash.style.display = 'none';
+  } else {
+    // Hide store splash until password is passed
+    document.getElementById('store-splash').style.display = 'none';
+    // Focus the password input
+    setTimeout(() => document.getElementById('pw-input').focus(), 100);
+  }
   // loadDues() is called after store selection in pickStore()
 }
 window.addEventListener('load', initApp);
@@ -877,7 +1050,7 @@ window.addEventListener('load', initApp);
 // ══════════════════════════════════════════════════════
 // LOCALSTORAGE FALLBACK
 // ══════════════════════════════════════════════════════
-function localKey()      { return `dues_${currentUID}_${currentStore}`; }
+function localKey()      { return `dues_${currentStore}`; }
 function localLoad()     { try { return JSON.parse(localStorage.getItem(localKey()) || '[]'); } catch(e) { return []; } }
 function localSave(data) { localStorage.setItem(localKey(), JSON.stringify(data)); }
 
@@ -887,7 +1060,7 @@ function localSave(data) { localStorage.setItem(localKey(), JSON.stringify(data)
 let __dbRef      = null;
 let __dbCallback = null;
 function loadDues() {
-  if (!currentUID) return;
+  if (!currentStore) return;
   // Properly detach previous listener before switching
   if (__dbRef && __dbCallback) {
     __dbRef.off('value', __dbCallback);
@@ -895,7 +1068,7 @@ function loadDues() {
   }
 
   try {
-    __dbRef = firebase.database().ref(`dues/${currentUID}/${currentStore}`);
+    __dbRef = firebase.database().ref(`dues/${currentStore}`);
     __dbCallback = __dbRef.on('value', snap => {
       const data = snap.val();
       allDues = data
@@ -929,10 +1102,10 @@ async function addDue() {
   if (!dateVal || !amountRaw || !supplier) { showToast('Please fill in all fields.', 'error'); return; }
   const amount = parseFloat(amountRaw);
   if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount.', 'error'); return; }
-  const entry = { uid: currentUID, store: currentStore, dueDate: dateVal, amount, supplier, mode, createdAt: new Date().toISOString() };
+  const entry = { store: currentStore, dueDate: dateVal, amount, supplier, mode, createdAt: new Date().toISOString() };
   try {
-    if (currentUID !== 'local-user') {
-      await firebase.database().ref(`dues/${currentUID}/${currentStore}`).push(entry);
+    if (currentUID && currentUID !== 'local-user') {
+      await firebase.database().ref(`dues/${currentStore}`).push(entry);
       // realtime listener will auto-refresh
     } else {
       entry.id = 'local_' + Date.now();
@@ -954,8 +1127,8 @@ async function addDue() {
 async function deleteDue(id) {
   if (!confirm('Remove this due entry?')) return;
   try {
-    if (currentUID !== 'local-user' && !id.startsWith('local_')) {
-      await firebase.database().ref(`dues/${currentUID}/${currentStore}/${id}`).remove();
+    if (currentUID && currentUID !== 'local-user' && !id.startsWith('local_')) {
+      await firebase.database().ref(`dues/${currentStore}/${id}`).remove();
       // realtime listener will auto-refresh
     } else {
       allDues = allDues.filter(d => d.id !== id);
