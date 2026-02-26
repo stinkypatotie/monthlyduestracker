@@ -272,6 +272,79 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 #toast.error   { border-color: var(--danger);  color: var(--danger); }
 #toast.info    { border-color: var(--tg);       color: #3ab4e8; }
 
+
+/* LIGHT THEME */
+body.light {
+  --bg:        #f0f2f7;
+  --panel:     #ffffff;
+  --card:      #f7f8fc;
+  --border:    #dde1ec;
+  --accent:    #d4a017;
+  --text:      #1a1d27;
+  --muted:     #7a8099;
+  --danger:    #dc2626;
+  --success:   #16a34a;
+  --main-tag:  #2563eb;
+  --branch-tag:#9333ea;
+  --tg:        #0088cc;
+}
+body.light .week-card.collapsed { background: #eaecf3; }
+body.light tbody tr:hover { background: #eef0f8; }
+body.light .supplier-cell { color: #4a5270; }
+
+/* THEME TOGGLE */
+.theme-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 1.05rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, color .2s;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* STORE SPLASH */
+#store-splash {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9000;
+  transition: opacity .4s, transform .4s;
+}
+#store-splash.hiding { opacity: 0; transform: scale(1.04); pointer-events: none; }
+.splash-box {
+  text-align: center; max-width: 420px; width: 90%; padding: 0 16px;
+}
+.splash-logo {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem;
+  color: var(--accent); letter-spacing: -1px; margin-bottom: 6px;
+}
+.splash-logo span { color: var(--text); }
+.splash-subtitle {
+  font-size: 0.78rem; color: var(--muted); margin-bottom: 40px; letter-spacing: .5px;
+}
+.splash-prompt {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 18px;
+}
+.splash-stores { display: flex; gap: 16px; justify-content: center; }
+.splash-store-btn {
+  flex: 1; max-width: 170px; padding: 28px 16px;
+  border-radius: 16px; border: 2px solid var(--border);
+  background: var(--card); cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, transform .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.splash-store-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+.splash-store-btn.main-opt:hover  { border-color: var(--main-tag); }
+.splash-store-btn.branch-opt:hover { border-color: var(--branch-tag); }
+.splash-store-icon { font-size: 2.2rem; }
+.splash-store-label {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 1px;
+}
+.splash-store-btn.main-opt   .splash-store-label { color: var(--main-tag); }
+.splash-store-btn.branch-opt .splash-store-label { color: var(--branch-tag); }
+.splash-store-desc { font-size: 0.65rem; color: var(--muted); }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -348,6 +421,7 @@ td { padding: 12px 14px; font-size: 0.82rem; }
       <button class="store-btn active-main" id="btn-main"   onclick="setStore('MAIN')">MAIN</button>
       <button class="store-btn"             id="btn-branch" onclick="setStore('BRANCH')">BRANCH</button>
     </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     <button class="settings-btn" onclick="openSettings()" title="Telegram Settings">⚙️</button>
     <div class="uid-badge" id="uid-badge">⏳ connecting…</div>
   </div>
@@ -465,10 +539,61 @@ td { padding: 12px 14px; font-size: 0.82rem; }
   </div>
 </div>
 
+
+<!-- ═══════════ STORE SPLASH ═══════════ -->
+<div id="store-splash">
+  <div class="splash-box">
+    <div class="splash-logo">Dues<span>Track</span></div>
+    <div class="splash-subtitle">Monthly Payment Tracker</div>
+    <div class="splash-prompt">Which store are you managing?</div>
+    <div class="splash-stores">
+      <button class="splash-store-btn main-opt" onclick="pickStore('MAIN')">
+        <div class="splash-store-icon">🏪</div>
+        <div class="splash-store-label">MAIN</div>
+        <div class="splash-store-desc">Main Store</div>
+      </button>
+      <button class="splash-store-btn branch-opt" onclick="pickStore('BRANCH')">
+        <div class="splash-store-icon">🏬</div>
+        <div class="splash-store-label">BRANCH</div>
+        <div class="splash-store-desc">Branch Store</div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════════════
+function applyTheme(t) {
+  document.body.classList.toggle('light', t === 'light');
+  document.getElementById('theme-btn').textContent = t === 'light' ? '🌙' : '☀️';
+  localStorage.setItem('theme', t);
+}
+function toggleTheme() {
+  applyTheme(document.body.classList.contains('light') ? 'dark' : 'light');
+}
+
+// ══════════════════════════════════════════════════════
+// STORE SPLASH
+// ══════════════════════════════════════════════════════
+function pickStore(s) {
+  currentStore = s;
+  // Update header buttons and pill
+  document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
+  document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
+  const pill = document.getElementById('store-pill');
+  pill.textContent = s; pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
+  // Animate splash out
+  const splash = document.getElementById('store-splash');
+  splash.classList.add('hiding');
+  setTimeout(() => { splash.style.display = 'none'; }, 420);
+  loadDues();
+}
+
 // ══════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════
@@ -666,6 +791,9 @@ function getOrCreateDeviceUID() {
 function initApp() {
   const badge = document.getElementById('uid-badge');
 
+  // Apply saved theme
+  applyTheme(localStorage.getItem('theme') || 'dark');
+
   currentUID = getOrCreateDeviceUID();
   badge.textContent = 'ID: ' + currentUID.slice(0, 14) + '...';
   badge.title = 'Click to copy Device ID';
@@ -673,8 +801,7 @@ function initApp() {
   badge.onclick = () => {
     navigator.clipboard.writeText(currentUID).then(() => showToast('Device ID copied! 📋', 'success'));
   };
-
-  loadDues();
+  // loadDues() is called after store selection in pickStore()
 }
 window.addEventListener('load', initApp);
 
