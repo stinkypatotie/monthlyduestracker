@@ -541,7 +541,7 @@ body.light .supplier-cell { color: #4a5270; }
   <div class="logo">Dues<span>Track</span></div>
   <div class="header-right">
     <div class="store-selector">
-      <button class="store-btn active-main" id="btn-main"   onclick="setStore('MAIN')">MAIN</button>
+      <button class="store-btn" id="btn-main"   onclick="setStore('MAIN')">MAIN</button>
       <button class="store-btn"             id="btn-branch" onclick="setStore('BRANCH')">BRANCH</button>
     </div>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
@@ -569,7 +569,7 @@ body.light .supplier-cell { color: #4a5270; }
     <div class="page-header">
       <div>
         <span class="page-title">Payment Dues</span>
-        <span class="store-pill pill-main" id="store-pill">MAIN</span>
+        <span class="store-pill" id="store-pill" style="display:none"></span>
       </div>
     </div>
 
@@ -815,6 +815,9 @@ function pickStore(s) {
   }
   currentStore = s;
   loadThreshold();
+  // Show store pill
+  const pill = document.getElementById('store-pill');
+  pill.style.display = 'inline-block';
   // Update header buttons and pill
   document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
@@ -830,7 +833,7 @@ function pickStore(s) {
 // ══════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════
-let currentStore = 'MAIN';
+let currentStore = null;
 let currentUID   = null;
 let allDues      = [];
 const today      = new Date();
@@ -1012,38 +1015,62 @@ function overlayClose(e, id) {
 // ══════════════════════════════════════════════════════
 // FIREBASE INIT — using compat SDK
 // ══════════════════════════════════════════════════════
-function getOrCreateDeviceUID() {
-  let uid = localStorage.getItem('device_uid');
-  if (!uid) {
-    uid = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
-    localStorage.setItem('device_uid', uid);
-  }
-  return uid;
-}
-
 function initApp() {
   const badge = document.getElementById('uid-badge');
 
   // Apply saved theme first (before any screen shows)
   applyTheme(localStorage.getItem('theme') || 'dark');
 
-  currentUID = getOrCreateDeviceUID();
-  badge.textContent = '🔗 Shared Database';
-  badge.title = 'All devices share the same data';
-  badge.style.color = 'var(--success)';
+  // Always show password screen first — hide store splash until pw passes
+  document.getElementById('store-splash').style.display = 'none';
 
-  // Check if already authenticated this session
-  if (sessionStorage.getItem('pw_authed') === '1') {
-    // Skip password screen — hide it immediately
-    const pwSplash = document.getElementById('pw-splash');
-    pwSplash.style.display = 'none';
-  } else {
-    // Hide store splash until password is passed
-    document.getElementById('store-splash').style.display = 'none';
-    // Focus the password input
-    setTimeout(() => document.getElementById('pw-input').focus(), 100);
-  }
-  // loadDues() is called after store selection in pickStore()
+  // ── Firebase Anonymous Auth ──────────────────────────────────────────────
+  // Signs in silently — gives us a real Firebase auth token.
+  // Firebase rules will require auth != null, blocking unauthenticated API calls.
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUID = user.uid;
+      badge.textContent = '🔗 Shared Database';
+      badge.title = 'Secured with Firebase Auth';
+      badge.style.color = 'var(--success)';
+
+      // Check if password was already entered this session
+      if (sessionStorage.getItem('pw_authed') === '1') {
+        document.getElementById('pw-splash').style.display = 'none';
+        // Re-show store splash if no store picked yet
+        if (!currentStore) {
+          document.getElementById('store-splash').style.display = 'flex';
+        }
+      } else {
+        // Show password screen, focus input
+        setTimeout(() => {
+          const inp = document.getElementById('pw-input');
+          if (inp) inp.focus();
+        }, 100);
+      }
+    }
+  });
+
+  auth.signInAnonymously().catch(e => {
+    console.warn('Firebase Auth failed, falling back to local:', e.message);
+    currentUID = 'local-user';
+    badge.textContent = '⚠ Offline mode';
+    badge.style.color = '#f59e0b';
+    // Still show password screen
+    if (sessionStorage.getItem('pw_authed') !== '1') {
+      setTimeout(() => {
+        const inp = document.getElementById('pw-input');
+        if (inp) inp.focus();
+      }, 100);
+    } else {
+      document.getElementById('pw-splash').style.display = 'none';
+      if (!currentStore) {
+        document.getElementById('store-splash').style.display = 'flex';
+      }
+    }
+  });
 }
 window.addEventListener('load', initApp);
 
@@ -1060,7 +1087,7 @@ function localSave(data) { localStorage.setItem(localKey(), JSON.stringify(data)
 let __dbRef      = null;
 let __dbCallback = null;
 function loadDues() {
-  if (!currentStore) return;
+  if (!currentStore || !currentUID) return;
   // Properly detach previous listener before switching
   if (__dbRef && __dbCallback) {
     __dbRef.off('value', __dbCallback);
@@ -1372,6 +1399,7 @@ function setStore(s) {
   document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
   const pill = document.getElementById('store-pill');
+  pill.style.display = 'inline-block';
   pill.textContent = s; pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
   loadDues();
 }
