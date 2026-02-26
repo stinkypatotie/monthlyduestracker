@@ -815,14 +815,14 @@ function pickStore(s) {
   }
   currentStore = s;
   loadThreshold();
-  // Show store pill
-  const pill = document.getElementById('store-pill');
-  pill.style.display = 'inline-block';
-  // Update header buttons and pill
+  // Update header buttons
   document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
+  // Update store pill
   const pill = document.getElementById('store-pill');
-  pill.textContent = s; pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
+  pill.style.display = 'inline-block';
+  pill.textContent = s;
+  pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
   // Animate splash out
   const splash = document.getElementById('store-splash');
   splash.classList.add('hiding');
