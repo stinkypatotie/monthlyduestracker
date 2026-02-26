@@ -345,6 +345,68 @@ body.light .supplier-cell { color: #4a5270; }
 .splash-store-btn.main-opt   .splash-store-label { color: var(--main-tag); }
 .splash-store-btn.branch-opt .splash-store-label { color: var(--branch-tag); }
 .splash-store-desc { font-size: 0.65rem; color: var(--muted); }
+
+/* THRESHOLD */
+.threshold-bar-wrap {
+  margin: 0 0 8px 0;
+  background: var(--bg); border-radius: 8px; overflow: hidden;
+  height: 6px; border: 1px solid var(--border);
+}
+.threshold-bar {
+  height: 100%; border-radius: 8px;
+  transition: width .4s ease, background .3s;
+  background: var(--success);
+}
+.threshold-bar.warn  { background: #f59e0b; }
+.threshold-bar.over  { background: var(--danger); }
+.threshold-status {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.62rem; color: var(--muted); margin-bottom: 10px;
+}
+.threshold-status .ts-remaining { font-family: 'Syne', sans-serif; font-weight: 700; }
+.threshold-status .ts-remaining.warn  { color: #f59e0b; }
+.threshold-status .ts-remaining.over  { color: var(--danger); }
+.threshold-status .ts-remaining.safe  { color: var(--success); }
+.threshold-exceeded-banner {
+  background: #ef444418; border: 1px solid #ef444455;
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+  font-size: 0.68rem; color: var(--danger);
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+}
+.threshold-warn-banner {
+  background: #f59e0b18; border: 1px solid #f59e0b55;
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+  font-size: 0.68rem; color: #f59e0b;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+}
+.threshold-set-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 14px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border);
+}
+.threshold-set-row input {
+  flex: 1; padding: 7px 10px; font-size: 0.78rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text); font-family: 'DM Mono', monospace;
+  outline: none; transition: border-color .2s;
+  width: auto;
+}
+.threshold-set-row input:focus { border-color: var(--accent); }
+.threshold-set-btn {
+  padding: 7px 12px; background: var(--accent); color: #0d0f14;
+  border: none; border-radius: 7px; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 0.68rem; cursor: pointer;
+  white-space: nowrap; transition: opacity .2s;
+}
+.threshold-set-btn:hover { opacity: .85; }
+.threshold-clear-btn {
+  padding: 7px 10px; background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 7px;
+  font-size: 0.68rem; cursor: pointer; transition: color .2s, border-color .2s;
+  white-space: nowrap;
+}
+.threshold-clear-btn:hover { color: var(--danger); border-color: var(--danger); }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -432,6 +494,12 @@ body.light .supplier-cell { color: #4a5270; }
   <!-- ═══════════ SIDEBAR ═══════════ -->
   <aside>
     <div class="sidebar-title">Weekly Summary</div>
+    <!-- Threshold setter -->
+    <div class="threshold-set-row">
+      <input type="text" id="threshold-input" placeholder="Weekly limit ₱" oninput="formatThresholdInput(this)">
+      <button class="threshold-set-btn" onclick="saveThreshold()">SET</button>
+      <button class="threshold-clear-btn" onclick="clearThreshold()" title="Remove limit">✕</button>
+    </div>
     <div id="week-list"><div style="color:var(--muted);font-size:.75rem;text-align:center;padding:20px 0">Loading…</div></div>
   </aside>
 
@@ -582,6 +650,7 @@ function toggleTheme() {
 // ══════════════════════════════════════════════════════
 function pickStore(s) {
   currentStore = s;
+  loadThreshold();
   // Update header buttons and pill
   document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
@@ -934,19 +1003,59 @@ function renderTable() {
 }
 
 // ══════════════════════════════════════════════════════
+// WEEKLY THRESHOLD
+// ══════════════════════════════════════════════════════
+let weeklyThreshold = 0;
+
+function loadThreshold() {
+  const saved = parseFloat(localStorage.getItem('weekly_threshold_' + currentStore));
+  weeklyThreshold = isNaN(saved) ? 0 : saved;
+  const inp = document.getElementById('threshold-input');
+  if (inp) inp.value = weeklyThreshold > 0 ? formatPeso(weeklyThreshold) : '';
+}
+
+function saveThreshold() {
+  const raw = document.getElementById('threshold-input').value.replace(/,/g, '');
+  const val = parseFloat(raw);
+  if (isNaN(val) || val <= 0) { showToast('Enter a valid threshold amount.', 'error'); return; }
+  weeklyThreshold = val;
+  localStorage.setItem('weekly_threshold_' + currentStore, val);
+  document.getElementById('threshold-input').value = formatPeso(val);
+  renderSidebar();
+  showToast('Weekly limit set to ₱' + formatPeso(val) + ' ✅', 'success');
+}
+
+function clearThreshold() {
+  weeklyThreshold = 0;
+  localStorage.removeItem('weekly_threshold_' + currentStore);
+  document.getElementById('threshold-input').value = '';
+  renderSidebar();
+  showToast('Weekly limit removed.', 'info');
+}
+
+function formatThresholdInput(el) {
+  let raw = el.value.replace(/[^0-9.]/g, '');
+  const parts = raw.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  el.value = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : parts.join('.');
+}
+
+// ══════════════════════════════════════════════════════
 // RENDER SIDEBAR — Sat → Fri weeks
 // ══════════════════════════════════════════════════════
 function renderSidebar() {
+  loadThreshold();
   const weeks = groupByWeeks(allDues);
   const el    = document.getElementById('week-list');
   if (!weeks.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px 0">No dues yet.</div>'; return; }
 
   const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  let hasAlerted = false;
 
   el.innerHTML = weeks.map((w, i) => {
-    // Determine if the week has passed (weekEnd < today)
     const weekEndDate = parseWeekEnd(w.label);
     const isPast = weekEndDate && weekEndDate < todayMidnight;
+    const isCurrentWeek = !isPast && weekEndDate && weekEndDate >= todayMidnight;
     const collapsedClass = isPast ? 'collapsed' : '';
     const pastBadge = isPast ? '<span class="week-past-badge">PAST</span>' : '';
 
@@ -965,6 +1074,49 @@ function renderSidebar() {
       </div>
     `).join('');
 
+    // ── Threshold block ──────────────────────────────────────────────────────
+    let thresholdHtml = '';
+    if (weeklyThreshold > 0) {
+      const remaining = weeklyThreshold - w.total;
+      const pct       = Math.min((w.total / weeklyThreshold) * 100, 100);
+      const isOver    = w.total >= weeklyThreshold;
+      const isWarn    = !isOver && pct >= 80;
+
+      const barClass      = isOver ? 'over' : isWarn ? 'warn' : '';
+      const statusClass   = isOver ? 'over' : isWarn ? 'warn' : 'safe';
+      const remainingText = isOver
+        ? '⚠ EXCEEDED by ₱' + formatPeso(w.total - weeklyThreshold)
+        : '₱' + formatPeso(remaining) + ' remaining';
+
+      const banner = isOver
+        ? `<div class="threshold-exceeded-banner">🚨 Weekly limit exceeded by ₱${formatPeso(w.total - weeklyThreshold)}!</div>`
+        : isWarn
+        ? `<div class="threshold-warn-banner">⚠️ Nearing limit — ${Math.round(pct)}% used</div>`
+        : '';
+
+      // Fire toast for current week only, once per render
+      if (!hasAlerted && !isPast) {
+        if (isOver) {
+          hasAlerted = true;
+          setTimeout(() => showToast('🚨 Weekly limit EXCEEDED for ' + w.label + '!', 'error'), 300);
+        } else if (isWarn) {
+          hasAlerted = true;
+          setTimeout(() => showToast('⚠️ Nearing weekly limit — ' + Math.round(pct) + '% used', 'error'), 300);
+        }
+      }
+
+      thresholdHtml = `
+        ${banner}
+        <div class="threshold-bar-wrap">
+          <div class="threshold-bar ${barClass}" style="width:${pct}%"></div>
+        </div>
+        <div class="threshold-status">
+          <span class="ts-remaining ${statusClass}">${remainingText}</span>
+          <span>₱${formatPeso(weeklyThreshold)} limit</span>
+        </div>`;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     return `
     <div class="week-card ${collapsedClass}" id="wcard-${i}">
       <div class="week-card-header" onclick="toggleWeekCard(${i})">
@@ -977,6 +1129,7 @@ function renderSidebar() {
       </div>
       <div class="week-card-body">
         <div class="week-card-body-inner">
+          ${thresholdHtml}
           ${detailRows}
           <button class="tg-btn" onclick="openPicker(${i})" style="margin-top:8px;">📨 Send to Telegram</button>
         </div>
@@ -1042,6 +1195,7 @@ function fmtRange(a, b) {
 // ══════════════════════════════════════════════════════
 function setStore(s) {
   currentStore = s;
+  loadThreshold();
   document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
   const pill = document.getElementById('store-pill');
