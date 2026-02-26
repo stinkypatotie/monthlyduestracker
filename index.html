@@ -82,19 +82,15 @@ header {
 /* SIDEBAR */
 aside {
   width: var(--sidebar-w); background: var(--panel);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   overflow-y: auto; padding: 20px 16px; flex-shrink: 0;
+  order: 2;
 }
 .sidebar-title {
   font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.7rem;
   letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
   margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
 }
-.week-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-  padding: 12px 14px; margin-bottom: 10px; transition: border-color .2s, transform .15s;
-}
-.week-card:hover { border-color: var(--accent); transform: translateX(2px); }
 .week-range { font-size: 0.65rem; color: var(--muted); margin-bottom: 6px; }
 .week-total { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--accent); }
 .week-count { font-size: 0.6rem; color: var(--muted); margin-top: 3px; margin-bottom: 8px; }
@@ -279,6 +275,67 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* WEEK CARD — collapsible + detail */
+.week-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 10px; transition: border-color .2s, box-shadow .2s; overflow: hidden;
+}
+.week-card:hover { border-color: #3d4559; }
+.week-card.collapsed {
+  background: #14171f;
+  border: 1px dashed var(--border);
+  opacity: 0.85;
+}
+.week-card.collapsed:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(245,200,66,.15);
+}
+.week-card-header {
+  padding: 12px 14px; cursor: pointer; user-select: none;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.week-card-header:hover { background: rgba(245,200,66,.04); }
+.week-card-meta { flex: 1; }
+.week-card-chevron {
+  font-size: 0.85rem; color: var(--muted); margin-left: 8px;
+  transition: transform .25s; flex-shrink: 0; line-height: 1;
+}
+.week-card.collapsed .week-card-chevron { transform: rotate(-90deg); }
+.week-card-body {
+  max-height: 600px; overflow: hidden;
+  transition: max-height .3s ease, opacity .25s;
+  opacity: 1;
+}
+.week-card.collapsed .week-card-body { max-height: 0; opacity: 0; }
+.week-card-body-inner { padding: 0 14px 12px 14px; }
+.week-past-badge {
+  display: inline-block; font-size: 0.55rem; letter-spacing: .5px;
+  background: #ef444422; border: 1px solid #ef444444; color: var(--danger);
+  border-radius: 20px; padding: 1px 7px; margin-left: 6px; vertical-align: middle;
+}
+/* collapsed header: show everything horizontally */
+.week-card.collapsed .week-card-meta {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.week-card.collapsed .week-range { margin-bottom: 0; }
+.week-card.collapsed .week-total { font-size: 0.88rem; }
+.week-card.collapsed .week-count { margin: 0; }
+.due-detail-row {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 0; border-bottom: 1px solid #252a3730;
+  font-size: 0.72rem;
+}
+.due-detail-row:last-child { border-bottom: none; }
+.due-detail-supplier { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); font-size: 0.78rem; }
+.due-detail-line { color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.due-detail-amount { color: var(--accent); font-weight: 500; }
+.due-detail-mode-badge { display: inline-block; padding: 1px 7px; border-radius: 20px; font-size: 0.6rem; border: 1px solid var(--border); color: var(--muted); }
+.due-detail-mode-cash     { border-color: #22c55e55; color: var(--success); }
+.due-detail-mode-check    { border-color: #f5c84255; color: var(--accent); }
+.due-detail-mode-transfer { border-color: #3b82f655; color: #60a5fa; }
+.due-detail-mode-gcash    { border-color: #a855f755; color: #c084fc; }
 </style>
 </head>
 <body>
@@ -597,30 +654,27 @@ function overlayClose(e, id) {
 // ══════════════════════════════════════════════════════
 // FIREBASE INIT — using compat SDK
 // ══════════════════════════════════════════════════════
+function getOrCreateDeviceUID() {
+  let uid = localStorage.getItem('device_uid');
+  if (!uid) {
+    uid = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+    localStorage.setItem('device_uid', uid);
+  }
+  return uid;
+}
+
 function initApp() {
-  const auth = firebase.auth();
   const badge = document.getElementById('uid-badge');
 
-  auth.signInAnonymously().catch(e => {
-    currentUID = 'local-user';
-    badge.textContent = '⚠ Auth failed — offline';
-    badge.style.color = '#ef4444';
-    showToast('Enable Anonymous Auth: Firebase → Authentication → Sign-in method → Anonymous → Enable', 'error');
-    loadDues();
-  });
+  currentUID = getOrCreateDeviceUID();
+  badge.textContent = 'ID: ' + currentUID.slice(0, 14) + '...';
+  badge.title = 'Click to copy Device ID';
+  badge.style.cursor = 'pointer';
+  badge.onclick = () => {
+    navigator.clipboard.writeText(currentUID).then(() => showToast('Device ID copied! 📋', 'success'));
+  };
 
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      currentUID = user.uid;
-      badge.textContent = 'UID: ' + user.uid.slice(0, 10) + '…';
-      badge.title = 'Click to copy full UID';
-      badge.style.cursor = 'pointer';
-      badge.onclick = () => {
-        navigator.clipboard.writeText(user.uid).then(() => showToast('UID copied to clipboard! 📋', 'success'));
-      };
-      loadDues();
-    }
-  });
+  loadDues();
 }
 window.addEventListener('load', initApp);
 
@@ -652,6 +706,9 @@ function loadDues() {
       renderSidebar();
     }, e => {
       console.warn('RTDB error:', e.message);
+      if (e.message && e.message.toLowerCase().includes('permission')) {
+        showToast('⚠ Firebase permission denied. Update your DB rules to allow read/write.', 'error');
+      }
       allDues = localLoad();
       renderTable(); renderSidebar();
     });
@@ -752,15 +809,72 @@ function renderSidebar() {
   const weeks = groupByWeeks(allDues);
   const el    = document.getElementById('week-list');
   if (!weeks.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px 0">No dues yet.</div>'; return; }
-  el.innerHTML = weeks.map((w,i) => `
-    <div class="week-card">
-      <div class="week-range">${w.label}</div>
-      <div class="week-total">₱ ${formatPeso(w.total)}</div>
-      <div class="week-count">${w.count} due${w.count !== 1 ? 's' : ''}</div>
-      <button class="tg-btn" onclick="openPicker(${i})">📨 Send to Telegram</button>
-    </div>
-  `).join('');
+
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  el.innerHTML = weeks.map((w, i) => {
+    // Determine if the week has passed (weekEnd < today)
+    const weekEndDate = parseWeekEnd(w.label);
+    const isPast = weekEndDate && weekEndDate < todayMidnight;
+    const collapsedClass = isPast ? 'collapsed' : '';
+    const pastBadge = isPast ? '<span class="week-past-badge">PAST</span>' : '';
+
+    const modeClassMap = {'Cash':'due-detail-mode-cash','Check':'due-detail-mode-check','Bank Transfer':'due-detail-mode-transfer','GCash':'due-detail-mode-gcash'};
+
+    const detailRows = w.dues.map(d => `
+      <div class="due-detail-row">
+        <div class="due-detail-supplier">${escHtml(d.supplier)}</div>
+        <div class="due-detail-line">
+          <span class="due-detail-amount">₱ ${formatPeso(d.amount)}</span>
+          <span>·</span>
+          <span>${formatDate(d.dueDate)}</span>
+          <span>·</span>
+          <span class="due-detail-mode-badge ${modeClassMap[d.mode] || ''}">${escHtml(d.mode)}</span>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+    <div class="week-card ${collapsedClass}" id="wcard-${i}">
+      <div class="week-card-header" onclick="toggleWeekCard(${i})">
+        <div class="week-card-meta">
+          <div class="week-range">${w.label}${pastBadge}</div>
+          <div class="week-total">₱ ${formatPeso(w.total)}</div>
+          <div class="week-count">${w.count} due${w.count !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="week-card-chevron">▾</div>
+      </div>
+      <div class="week-card-body">
+        <div class="week-card-body-inner">
+          ${detailRows}
+          <button class="tg-btn" onclick="openPicker(${i})" style="margin-top:8px;">📨 Send to Telegram</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
   window.__weeks = weeks;
+}
+
+function toggleWeekCard(i) {
+  const card = document.getElementById('wcard-' + i);
+  if (card) card.classList.toggle('collapsed');
+}
+
+// Parse the end date from a label like "Jan 15 – 21, 2025" or "Jan 29 – Feb 4, 2025"
+function parseWeekEnd(label) {
+  try {
+    const mo = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    // "MMM D – D, YYYY"  same month
+    let m = label.match(/^(\w+)\s+\d+\s*[–-]\s*(\d+),\s*(\d{4})$/);
+    if (m) return new Date(+m[3], mo[m[1]], +m[2]);
+    // "MMM D – MMM D, YYYY"  different months, same year
+    m = label.match(/^\w+\s+\d+\s*[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
+    if (m) return new Date(+m[3], mo[m[1]], +m[2]);
+    // "MMM D, YYYY – MMM D, YYYY"
+    m = label.match(/[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
+    if (m) return new Date(+m[3], mo[m[1]], +m[2]);
+    return null;
+  } catch(e) { return null; }
 }
 
 function groupByWeeks(dues) {
