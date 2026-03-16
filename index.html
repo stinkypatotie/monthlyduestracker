@@ -130,6 +130,7 @@ select option { background: var(--bg); }
   font-size: 0.85rem; cursor: pointer; transition: opacity .2s, transform .15s; white-space: nowrap;
 }
 .add-btn:hover { opacity: .85; transform: translateY(-1px); }
+.add-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
 /* TABLE */
 .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -166,7 +167,7 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 .total-row td { font-family: 'Syne', sans-serif; font-weight: 700; border-top: 2px solid var(--border); color: var(--accent); font-size: 0.9rem; }
 
 /* ════════════════════════════════
-   MODALS (Settings + Recipient Picker)
+   MODALS
    ════════════════════════════════ */
 .modal-overlay {
   position: fixed; inset: 0; background: #00000088;
@@ -228,7 +229,7 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 .add-recipient-btn:hover { border-color: var(--accent); }
 .empty-recipients { text-align: center; padding: 20px; color: var(--muted); font-size: 0.78rem; border: 1px dashed var(--border); border-radius: 8px; }
 
-/* Recipient Picker Modal (for sending) */
+/* Recipient Picker Modal */
 .picker-modal { max-width: 380px; }
 .picker-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .picker-item {
@@ -271,7 +272,6 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 #toast.success { border-color: var(--success); color: var(--success); }
 #toast.error   { border-color: var(--danger);  color: var(--danger); }
 #toast.info    { border-color: var(--tg);       color: #3ab4e8; }
-
 
 /* LIGHT THEME */
 body.light {
@@ -511,7 +511,6 @@ body.light .supplier-cell { color: #4a5270; }
   background: #ef444422; border: 1px solid #ef444444; color: var(--danger);
   border-radius: 20px; padding: 1px 7px; margin-left: 6px; vertical-align: middle;
 }
-/* collapsed header: show everything horizontally */
 .week-card.collapsed .week-card-meta {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
@@ -532,6 +531,16 @@ body.light .supplier-cell { color: #4a5270; }
 .due-detail-mode-check    { border-color: #f5c84255; color: var(--accent); }
 .due-detail-mode-transfer { border-color: #3b82f655; color: #60a5fa; }
 .due-detail-mode-gcash    { border-color: #a855f755; color: #c084fc; }
+
+/* IMPORT BUTTON (page-header) */
+.import-sheet-btn {
+  height: 36px; padding: 0 16px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); border-radius: 8px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.75rem;
+  cursor: pointer; transition: border-color .2s, color .2s; white-space: nowrap;
+}
+.import-sheet-btn:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -542,7 +551,7 @@ body.light .supplier-cell { color: #4a5270; }
   <div class="header-right">
     <div class="store-selector">
       <button class="store-btn" id="btn-main"   onclick="setStore('MAIN')">MAIN</button>
-      <button class="store-btn"             id="btn-branch" onclick="setStore('BRANCH')">BRANCH</button>
+      <button class="store-btn" id="btn-branch" onclick="setStore('BRANCH')">BRANCH</button>
     </div>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     <button class="settings-btn" onclick="openSettings()" title="Telegram Settings">⚙️</button>
@@ -555,7 +564,6 @@ body.light .supplier-cell { color: #4a5270; }
   <!-- ═══════════ SIDEBAR ═══════════ -->
   <aside>
     <div class="sidebar-title">Weekly Summary</div>
-    <!-- Threshold setter -->
     <div class="threshold-set-row">
       <input type="text" id="threshold-input" placeholder="Weekly limit ₱" oninput="formatThresholdInput(this)">
       <button class="threshold-set-btn" onclick="saveThreshold()">SET</button>
@@ -571,6 +579,7 @@ body.light .supplier-cell { color: #4a5270; }
         <span class="page-title">Payment Dues</span>
         <span class="store-pill" id="store-pill" style="display:none"></span>
       </div>
+      <button class="import-sheet-btn" onclick="openImport()">⬇ Import Sheet</button>
     </div>
 
     <!-- ADD FORM -->
@@ -623,7 +632,6 @@ body.light .supplier-cell { color: #4a5270; }
       <button class="modal-close" onclick="closeSettings()">✕</button>
     </div>
 
-    <!-- Bot Token -->
     <div class="settings-section">
       <div class="settings-section-title">🤖 Bot Token</div>
       <div class="token-row">
@@ -636,12 +644,9 @@ body.light .supplier-cell { color: #4a5270; }
       <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">Get your token from <strong style="color:#3ab4e8">@BotFather</strong> on Telegram.</div>
     </div>
 
-    <!-- Recipients -->
     <div class="settings-section">
       <div class="settings-section-title">👥 Recipients</div>
       <div id="recipient-list-ui"></div>
-
-      <!-- Add recipient -->
       <div class="add-recipient-grid" style="margin-top:12px;">
         <div><label>NAME</label><input type="text" id="r-name" placeholder="e.g. Owner"></div>
         <div><label>CHAT ID</label><input type="text" id="r-chatid" placeholder="e.g. -100123456"></div>
@@ -650,7 +655,6 @@ body.light .supplier-cell { color: #4a5270; }
       <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">To get a Chat ID: forward a message to <strong style="color:#3ab4e8">@userinfobot</strong> on Telegram.</div>
     </div>
 
-    <!-- Change Password -->
     <div class="settings-section">
       <div class="settings-section-title">🔑 App Password</div>
       <div class="pw-change-row">
@@ -679,6 +683,54 @@ body.light .supplier-cell { color: #4a5270; }
   </div>
 </div>
 
+<!-- ═══════════ IMPORT MODAL ═══════════ -->
+<div class="modal-overlay" id="import-overlay" onclick="overlayClose(event,'import-overlay')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">⬇ Import from Google Sheets</div>
+      <button class="modal-close" onclick="closeImport()">✕</button>
+    </div>
+
+    <div style="font-size:.68rem;color:var(--muted);margin-bottom:14px;line-height:1.8">
+      In Google Sheets:<br>
+      <strong style="color:var(--text)">File → Share → Publish to web</strong>
+      → select your sheet tab → choose <strong style="color:var(--text)">CSV</strong>
+      → click Publish → paste the URL below.
+    </div>
+
+    <div style="font-size:.68rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.8">
+      Expected column order:
+      <span style="color:var(--accent);font-weight:700">Due Date · Amount · Supplier · Mode</span><br>
+      <span style="color:var(--muted)">Date formats accepted: <code style="color:var(--text)">YYYY-MM-DD</code> or <code style="color:var(--text)">M/D/YYYY</code><br>
+      Mode values: Cash · Check · Bank Transfer · GCash · Other</span>
+    </div>
+
+    <label>PUBLISHED CSV URL</label>
+    <input type="text" id="import-url"
+      placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
+      style="margin-bottom:14px">
+
+    <button class="add-btn" onclick="fetchSheetCSV()" style="width:100%;margin-bottom:16px">
+      🔄 FETCH & PREVIEW
+    </button>
+
+    <!-- Preview area -->
+    <div id="import-preview" style="display:none">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:1px;
+                  color:var(--muted);text-transform:uppercase;margin-bottom:8px">
+        Preview — <span id="import-preview-count" style="color:var(--accent)"></span>
+      </div>
+      <div id="import-preview-table"
+        style="max-height:220px;overflow-y:auto;margin-bottom:10px;
+               border:1px solid var(--border);border-radius:8px"></div>
+      <div id="import-error-list"
+        style="font-size:.68rem;color:var(--danger);margin-bottom:10px;line-height:1.6"></div>
+      <button class="add-btn" id="import-confirm-btn" onclick="confirmImport()" style="width:100%">
+        ✅ IMPORT TO <span id="import-store-label"></span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════ PASSWORD SPLASH ═══════════ -->
 <div id="pw-splash">
@@ -734,7 +786,6 @@ function getStoredPasswordHash() {
 }
 
 function simpleHash(str) {
-  // Lightweight non-crypto hash — good enough for app-level access control
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
@@ -748,13 +799,11 @@ function submitPassword() {
   const val   = input.value;
   if (!val) { showPwError('Please enter a password.'); return; }
   if (simpleHash(val) === getStoredPasswordHash()) {
-    // Correct — store session auth and proceed
     sessionStorage.setItem('pw_authed', '1');
     const splash = document.getElementById('pw-splash');
     splash.classList.add('hiding');
     setTimeout(() => {
       splash.style.display = 'none';
-      // Now show the store selector
       document.getElementById('store-splash').style.display = 'flex';
     }, 420);
   } else {
@@ -765,12 +814,8 @@ function submitPassword() {
   }
 }
 
-function showPwError(msg) {
-  document.getElementById('pw-error').textContent = msg;
-}
-function clearPwError() {
-  document.getElementById('pw-error').textContent = '';
-}
+function showPwError(msg) { document.getElementById('pw-error').textContent = msg; }
+function clearPwError()   { document.getElementById('pw-error').textContent = ''; }
 
 function togglePwVisibility() {
   const inp = document.getElementById('pw-input');
@@ -782,9 +827,9 @@ function togglePwVisibility() {
 function changeAppPassword() {
   const nw  = document.getElementById('s-pw-new').value.trim();
   const cfm = document.getElementById('s-pw-confirm').value.trim();
-  if (!nw)        { showToast('Enter a new password.', 'error'); return; }
+  if (!nw)           { showToast('Enter a new password.', 'error'); return; }
   if (nw.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
-  if (nw !== cfm) { showToast('Passwords do not match.', 'error'); return; }
+  if (nw !== cfm)    { showToast('Passwords do not match.', 'error'); return; }
   localStorage.setItem('app_pw_hash', simpleHash(nw));
   document.getElementById('s-pw-new').value    = '';
   document.getElementById('s-pw-confirm').value = '';
@@ -807,7 +852,6 @@ function toggleTheme() {
 // STORE SPLASH
 // ══════════════════════════════════════════════════════
 function pickStore(s) {
-  // Guard: password must be verified first
   if (sessionStorage.getItem('pw_authed') !== '1') {
     document.getElementById('store-splash').style.display = 'none';
     document.getElementById('pw-splash').style.display = 'flex';
@@ -815,15 +859,12 @@ function pickStore(s) {
   }
   currentStore = s;
   loadThreshold();
-  // Update header buttons
   document.getElementById('btn-main').className   = 'store-btn' + (s === 'MAIN'   ? ' active-main'   : '');
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
-  // Update store pill
   const pill = document.getElementById('store-pill');
   pill.style.display = 'inline-block';
   pill.textContent = s;
   pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
-  // Animate splash out
   const splash = document.getElementById('store-splash');
   splash.classList.add('hiding');
   setTimeout(() => { splash.style.display = 'none'; }, 420);
@@ -840,17 +881,16 @@ const today      = new Date();
 let viewYear     = today.getFullYear();
 let viewMonth    = today.getMonth();
 
-// Telegram state
 let tgToken      = '';
-let tgRecipients = []; // [{name, chatId}]
+let tgRecipients = [];
 let pickerWeekIndex = null;
 let selectedRecipients = new Set();
 
 // ══════════════════════════════════════════════════════
-// TELEGRAM SETTINGS — persist in localStorage
+// TELEGRAM SETTINGS
 // ══════════════════════════════════════════════════════
 function loadTgSettings() {
-  tgToken      = localStorage.getItem('tg_token') || '';
+  tgToken = localStorage.getItem('tg_token') || '';
   try { tgRecipients = JSON.parse(localStorage.getItem('tg_recipients') || '[]'); }
   catch(e) { tgRecipients = []; }
 }
@@ -918,20 +958,13 @@ function closeSettings() { document.getElementById('settings-overlay').classList
 // ══════════════════════════════════════════════════════
 function openPicker(weekIndex) {
   loadTgSettings();
-
-  if (!tgToken) {
-    showToast('Set your Bot Token in ⚙️ Settings first.', 'error'); return;
-  }
-  if (!tgRecipients.length) {
-    showToast('Add at least one recipient in ⚙️ Settings first.', 'error'); return;
-  }
-
-  pickerWeekIndex  = weekIndex;
+  if (!tgToken) { showToast('Set your Bot Token in ⚙️ Settings first.', 'error'); return; }
+  if (!tgRecipients.length) { showToast('Add at least one recipient in ⚙️ Settings first.', 'error'); return; }
+  pickerWeekIndex    = weekIndex;
   selectedRecipients = new Set();
   const w = (window.__weeks || [])[weekIndex];
   document.getElementById('picker-week-label').textContent =
     w ? 'Week: ' + w.label + '  •  ₱' + formatPeso(w.total) : '';
-
   renderPickerList();
   document.getElementById('settings-overlay').classList.remove('open');
   document.getElementById('picker-overlay').classList.add('open');
@@ -958,24 +991,16 @@ function toggleRecipient(i) {
   renderPickerList();
 }
 
-async function sendToSelected() {
-  const targets = [...selectedRecipients].map(i => tgRecipients[i]);
-  await doSend(targets);
-}
-
-async function sendToAll() {
-  await doSend(tgRecipients);
-}
+async function sendToSelected() { await doSend([...selectedRecipients].map(i => tgRecipients[i])); }
+async function sendToAll()      { await doSend(tgRecipients); }
 
 async function doSend(targets) {
   if (!targets.length) { showToast('No recipients selected.', 'error'); return; }
   const w = (window.__weeks || [])[pickerWeekIndex];
   if (!w) return;
-
   const lines = w.dues.map(d =>
     `  • ${formatDate(d.dueDate)} | ${d.supplier} | ${d.mode} | ₱${formatPeso(d.amount)}`
   ).join('\n');
-
   const msg =
 `📅 *Weekly Dues Report*
 🏪 Store: *${currentStore}*
@@ -985,24 +1010,20 @@ ${lines}
 
 💰 *Total: ₱${formatPeso(w.total)}*
 🔢 ${w.count} due${w.count !== 1 ? 's' : ''}`;
-
   let ok = 0, fail = 0;
   for (const r of targets) {
     try {
       const res  = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chat_id: r.chatId, text: msg, parse_mode: 'Markdown' })
       });
       const data = await res.json();
-      if (data.ok) ok++;
-      else { fail++; console.warn('TG error for', r.name, data.description); }
+      if (data.ok) ok++; else { fail++; console.warn('TG error for', r.name, data.description); }
     } catch(e) { fail++; }
   }
-
   closePicker();
   if (fail === 0) showToast(`Sent to ${ok} recipient${ok !== 1 ? 's' : ''}! 📨`, 'success');
-  else            showToast(`Sent: ${ok} ✅  Failed: ${fail} ❌`, fail > 0 ? 'error' : 'success');
+  else            showToast(`Sent: ${ok} ✅  Failed: ${fail} ❌`, 'error');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1013,21 +1034,13 @@ function overlayClose(e, id) {
 }
 
 // ══════════════════════════════════════════════════════
-// FIREBASE INIT — using compat SDK
+// FIREBASE INIT
 // ══════════════════════════════════════════════════════
 function initApp() {
-  const badge = document.getElementById('uid-badge');
-
-  // Apply saved theme first (before any screen shows)
   applyTheme(localStorage.getItem('theme') || 'dark');
-
-  // Always show password screen first — hide store splash until pw passes
   document.getElementById('store-splash').style.display = 'none';
-
-  // ── Firebase Anonymous Auth ──────────────────────────────────────────────
-  // Signs in silently — gives us a real Firebase auth token.
-  // Firebase rules will require auth != null, blocking unauthenticated API calls.
-  const auth = firebase.auth();
+  const badge = document.getElementById('uid-badge');
+  const auth  = firebase.auth();
 
   auth.onAuthStateChanged(user => {
     if (user) {
@@ -1035,20 +1048,11 @@ function initApp() {
       badge.textContent = '🔗 Shared Database';
       badge.title = 'Secured with Firebase Auth';
       badge.style.color = 'var(--success)';
-
-      // Check if password was already entered this session
       if (sessionStorage.getItem('pw_authed') === '1') {
         document.getElementById('pw-splash').style.display = 'none';
-        // Re-show store splash if no store picked yet
-        if (!currentStore) {
-          document.getElementById('store-splash').style.display = 'flex';
-        }
+        if (!currentStore) document.getElementById('store-splash').style.display = 'flex';
       } else {
-        // Show password screen, focus input
-        setTimeout(() => {
-          const inp = document.getElementById('pw-input');
-          if (inp) inp.focus();
-        }, 100);
+        setTimeout(() => { const inp = document.getElementById('pw-input'); if (inp) inp.focus(); }, 100);
       }
     }
   });
@@ -1058,17 +1062,11 @@ function initApp() {
     currentUID = 'local-user';
     badge.textContent = '⚠ Offline mode';
     badge.style.color = '#f59e0b';
-    // Still show password screen
     if (sessionStorage.getItem('pw_authed') !== '1') {
-      setTimeout(() => {
-        const inp = document.getElementById('pw-input');
-        if (inp) inp.focus();
-      }, 100);
+      setTimeout(() => { const inp = document.getElementById('pw-input'); if (inp) inp.focus(); }, 100);
     } else {
       document.getElementById('pw-splash').style.display = 'none';
-      if (!currentStore) {
-        document.getElementById('store-splash').style.display = 'flex';
-      }
+      if (!currentStore) document.getElementById('store-splash').style.display = 'flex';
     }
   });
 }
@@ -1082,18 +1080,17 @@ function localLoad()     { try { return JSON.parse(localStorage.getItem(localKey
 function localSave(data) { localStorage.setItem(localKey(), JSON.stringify(data)); }
 
 // ══════════════════════════════════════════════════════
-// LOAD DUES — Realtime Database compat
+// LOAD DUES
 // ══════════════════════════════════════════════════════
 let __dbRef      = null;
 let __dbCallback = null;
+
 function loadDues() {
   if (!currentStore || !currentUID) return;
-  // Properly detach previous listener before switching
   if (__dbRef && __dbCallback) {
     __dbRef.off('value', __dbCallback);
     __dbRef = null; __dbCallback = null;
   }
-
   try {
     __dbRef = firebase.database().ref(`dues/${currentStore}`);
     __dbCallback = __dbRef.on('value', snap => {
@@ -1133,7 +1130,6 @@ async function addDue() {
   try {
     if (currentUID && currentUID !== 'local-user') {
       await firebase.database().ref(`dues/${currentStore}`).push(entry);
-      // realtime listener will auto-refresh
     } else {
       entry.id = 'local_' + Date.now();
       allDues.push(entry);
@@ -1156,7 +1152,6 @@ async function deleteDue(id) {
   try {
     if (currentUID && currentUID !== 'local-user' && !id.startsWith('local_')) {
       await firebase.database().ref(`dues/${currentStore}/${id}`).remove();
-      // realtime listener will auto-refresh
     } else {
       allDues = allDues.filter(d => d.id !== id);
       localSave(allDues);
@@ -1215,7 +1210,7 @@ function loadThreshold() {
 }
 
 function saveThreshold() {
-  const raw = document.getElementById('threshold-input').value.replace(/,/g, '');
+  const raw = document.getElementById('threshold-input').value.replace(/,/g,'');
   const val = parseFloat(raw);
   if (isNaN(val) || val <= 0) { showToast('Enter a valid threshold amount.', 'error'); return; }
   weeklyThreshold = val;
@@ -1234,9 +1229,9 @@ function clearThreshold() {
 }
 
 function formatThresholdInput(el) {
-  let raw = el.value.replace(/[^0-9.]/g, '');
+  let raw = el.value.replace(/[^0-9.]/g,'');
   const parts = raw.split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
   el.value = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : parts.join('.');
 }
 
@@ -1255,11 +1250,15 @@ function renderSidebar() {
   el.innerHTML = weeks.map((w, i) => {
     const weekEndDate = parseWeekEnd(w.label);
     const isPast = weekEndDate && weekEndDate < todayMidnight;
-    const isCurrentWeek = !isPast && weekEndDate && weekEndDate >= todayMidnight;
     const collapsedClass = isPast ? 'collapsed' : '';
     const pastBadge = isPast ? '<span class="week-past-badge">PAST</span>' : '';
 
-    const modeClassMap = {'Cash':'due-detail-mode-cash','Check':'due-detail-mode-check','Bank Transfer':'due-detail-mode-transfer','GCash':'due-detail-mode-gcash'};
+    const modeClassMap = {
+      'Cash':'due-detail-mode-cash',
+      'Check':'due-detail-mode-check',
+      'Bank Transfer':'due-detail-mode-transfer',
+      'GCash':'due-detail-mode-gcash'
+    };
 
     const detailRows = w.dues.map(d => `
       <div class="due-detail-row">
@@ -1274,37 +1273,26 @@ function renderSidebar() {
       </div>
     `).join('');
 
-    // ── Threshold block ──────────────────────────────────────────────────────
     let thresholdHtml = '';
     if (weeklyThreshold > 0) {
       const remaining = weeklyThreshold - w.total;
       const pct       = Math.min((w.total / weeklyThreshold) * 100, 100);
       const isOver    = w.total >= weeklyThreshold;
       const isWarn    = !isOver && pct >= 80;
-
       const barClass      = isOver ? 'over' : isWarn ? 'warn' : '';
       const statusClass   = isOver ? 'over' : isWarn ? 'warn' : 'safe';
       const remainingText = isOver
         ? '⚠ EXCEEDED by ₱' + formatPeso(w.total - weeklyThreshold)
         : '₱' + formatPeso(remaining) + ' remaining';
-
       const banner = isOver
         ? `<div class="threshold-exceeded-banner">🚨 Weekly limit exceeded by ₱${formatPeso(w.total - weeklyThreshold)}!</div>`
         : isWarn
         ? `<div class="threshold-warn-banner">⚠️ Nearing limit — ${Math.round(pct)}% used</div>`
         : '';
-
-      // Fire toast for current week only, once per render
       if (!hasAlerted && !isPast) {
-        if (isOver) {
-          hasAlerted = true;
-          setTimeout(() => showToast('🚨 Weekly limit EXCEEDED for ' + w.label + '!', 'error'), 300);
-        } else if (isWarn) {
-          hasAlerted = true;
-          setTimeout(() => showToast('⚠️ Nearing weekly limit — ' + Math.round(pct) + '% used', 'error'), 300);
-        }
+        if (isOver)      { hasAlerted = true; setTimeout(() => showToast('🚨 Weekly limit EXCEEDED for ' + w.label + '!', 'error'), 300); }
+        else if (isWarn) { hasAlerted = true; setTimeout(() => showToast('⚠️ Nearing weekly limit — ' + Math.round(pct) + '% used', 'error'), 300); }
       }
-
       thresholdHtml = `
         ${banner}
         <div class="threshold-bar-wrap">
@@ -1315,7 +1303,6 @@ function renderSidebar() {
           <span>₱${formatPeso(weeklyThreshold)} limit</span>
         </div>`;
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     return `
     <div class="week-card ${collapsedClass}" id="wcard-${i}">
@@ -1344,17 +1331,13 @@ function toggleWeekCard(i) {
   if (card) card.classList.toggle('collapsed');
 }
 
-// Parse the end date from a label like "Jan 15 – 21, 2025" or "Jan 29 – Feb 4, 2025"
 function parseWeekEnd(label) {
   try {
     const mo = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    // "MMM D – D, YYYY"  same month
     let m = label.match(/^(\w+)\s+\d+\s*[–-]\s*(\d+),\s*(\d{4})$/);
     if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    // "MMM D – MMM D, YYYY"  different months, same year
     m = label.match(/^\w+\s+\d+\s*[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
     if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    // "MMM D, YYYY – MMM D, YYYY"
     m = label.match(/[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
     if (m) return new Date(+m[3], mo[m[1]], +m[2]);
     return null;
@@ -1400,7 +1383,8 @@ function setStore(s) {
   document.getElementById('btn-branch').className = 'store-btn' + (s === 'BRANCH' ? ' active-branch' : '');
   const pill = document.getElementById('store-pill');
   pill.style.display = 'inline-block';
-  pill.textContent = s; pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
+  pill.textContent = s;
+  pill.className = 'store-pill ' + (s === 'MAIN' ? 'pill-main' : 'pill-branch');
   loadDues();
 }
 function changeMonth(dir) {
@@ -1423,8 +1407,10 @@ function formatAmountInput(el) {
 }
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function clearForm() {
-  document.getElementById('f-date').value = ''; document.getElementById('f-amount').value = '';
-  document.getElementById('f-supplier').value = ''; document.getElementById('f-mode').value = 'Cash';
+  document.getElementById('f-date').value     = '';
+  document.getElementById('f-amount').value   = '';
+  document.getElementById('f-supplier').value = '';
+  document.getElementById('f-mode').value     = 'Cash';
 }
 let toastTimer;
 function showToast(msg, type = 'info') {
@@ -1434,7 +1420,159 @@ function showToast(msg, type = 'info') {
   toastTimer = setTimeout(() => { t.className = ''; }, 3500);
 }
 
-document.getElementById('f-date').value = today.toISOString().slice(0,10);
+// ══════════════════════════════════════════════════════
+// IMPORT FROM GOOGLE SHEETS (Option A — Published CSV URL)
+// ══════════════════════════════════════════════════════
+let importParsedRows = [];
+
+function openImport() {
+  importParsedRows = [];
+  document.getElementById('import-url').value = '';
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-store-label').textContent = currentStore;
+  document.getElementById('import-overlay').classList.add('open');
+}
+function closeImport() {
+  document.getElementById('import-overlay').classList.remove('open');
+}
+
+async function fetchSheetCSV() {
+  const url = document.getElementById('import-url').value.trim();
+  if (!url) { showToast('Paste the published CSV URL first.', 'error'); return; }
+  showToast('Fetching sheet…', 'info');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    parseAndPreviewCSV(text);
+  } catch(e) {
+    showToast('Could not fetch sheet. Make sure it is published as CSV and the URL is correct.', 'error');
+  }
+}
+
+function parseAndPreviewCSV(text) {
+  const lines = text.trim().split('\n');
+
+  // Skip header row if first cell is non-numeric / non-date
+  let startRow = 0;
+  const firstCell = lines[0].split(',')[0].trim().replace(/"/g, '');
+  if (isNaN(Date.parse(firstCell)) && isNaN(parseFloat(firstCell))) startRow = 1;
+
+  const VALID_MODES = ['Cash', 'Check', 'Bank Transfer', 'GCash', 'Other'];
+  const valid = [], errors = [];
+
+  for (let i = startRow; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+    if (cols.length < 3 || cols.every(c => !c)) continue;
+
+    const [rawDate, rawAmount, rawSupplier, rawMode] = cols;
+
+    // Parse date — accepts YYYY-MM-DD or M/D/YYYY
+    let dateStr = '';
+    const d1 = rawDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    const d2 = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (d1) {
+      dateStr = `${d1[1]}-${d1[2].padStart(2,'0')}-${d1[3].padStart(2,'0')}`;
+    } else if (d2) {
+      dateStr = `${d2[3]}-${d2[1].padStart(2,'0')}-${d2[2].padStart(2,'0')}`;
+    } else {
+      errors.push(`Row ${i + 1}: invalid date "${rawDate}"`); continue;
+    }
+
+    const amount = parseFloat(rawAmount.replace(/,/g, ''));
+    if (isNaN(amount) || amount <= 0) {
+      errors.push(`Row ${i + 1}: invalid amount "${rawAmount}"`); continue;
+    }
+
+    if (!rawSupplier) { errors.push(`Row ${i + 1}: missing supplier`); continue; }
+
+    let mode = (rawMode || '').trim();
+    if (!VALID_MODES.includes(mode)) mode = 'Cash';
+
+    valid.push({ dueDate: dateStr, amount, supplier: rawSupplier, mode });
+  }
+
+  importParsedRows = valid;
+
+  document.getElementById('import-preview-count').textContent =
+    valid.length + ' row' + (valid.length !== 1 ? 's' : '') + ' ready';
+
+  document.getElementById('import-preview-table').innerHTML = valid.length
+    ? `<table style="width:100%;border-collapse:collapse;font-size:.72rem">
+        <thead>
+          <tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+            <th style="padding:8px 10px;text-align:left;font-weight:600">Date</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600">Supplier</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600">Mode</th>
+            <th style="padding:8px 10px;text-align:right;font-weight:600">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${valid.map(r => `
+            <tr style="border-top:1px solid #252a3730">
+              <td style="padding:7px 10px">${formatDate(r.dueDate)}</td>
+              <td style="padding:7px 10px;color:#a8b2c8">${escHtml(r.supplier)}</td>
+              <td style="padding:7px 10px;color:var(--muted)">${escHtml(r.mode)}</td>
+              <td style="padding:7px 10px;text-align:right;color:var(--accent)">₱${formatPeso(r.amount)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`
+    : `<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:20px">No valid rows found.</div>`;
+
+  document.getElementById('import-error-list').innerHTML = errors.length
+    ? '⚠ Skipped rows:<br>' + errors.join('<br>')
+    : '';
+
+  document.getElementById('import-confirm-btn').disabled = valid.length === 0;
+  document.getElementById('import-preview').style.display = 'block';
+}
+
+async function confirmImport() {
+  if (!importParsedRows.length) return;
+  const btn = document.getElementById('import-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Importing…';
+
+  let ok = 0, fail = 0;
+  for (const row of importParsedRows) {
+    const entry = {
+      store:     currentStore,
+      dueDate:   row.dueDate,
+      amount:    row.amount,
+      supplier:  row.supplier,
+      mode:      row.mode,
+      createdAt: new Date().toISOString()
+    };
+    try {
+      if (currentUID && currentUID !== 'local-user') {
+        await firebase.database().ref(`dues/${currentStore}`).push(entry);
+      } else {
+        entry.id = 'local_' + Date.now() + '_' + ok;
+        allDues.push(entry);
+      }
+      ok++;
+    } catch(e) { fail++; }
+  }
+
+  if (currentUID === 'local-user') {
+    allDues.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    localSave(allDues);
+    renderTable();
+    renderSidebar();
+  }
+
+  closeImport();
+  importParsedRows = [];
+  showToast(
+    `Imported ${ok} entr${ok !== 1 ? 'ies' : 'y'}! ✅${fail ? '  Failed: ' + fail : ''}`,
+    fail ? 'error' : 'success'
+  );
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('f-date').value = today.toISOString().slice(0, 10);
 loadTgSettings();
 </script>
 </body>
