@@ -497,9 +497,10 @@ body.light .supplier-cell { color: #4a5270; }
 
 /* WEEK CARD — collapsible + detail */
 .week-card-body {
-  max-height: 4000px; overflow: hidden;
-  transition: max-height .5s ease, opacity .25s;
+  overflow: hidden;
+  transition: max-height .35s ease, opacity .25s;
   opacity: 1;
+  /* max-height set dynamically via JS — no fixed limit */
 }
 .week-card:hover { border-color: #3d4559; }
 .week-card.collapsed {
@@ -1386,24 +1387,27 @@ function renderSidebar() {
     </div>`;
   }).join('');
   window.__weeks = weeks;
+  // Initialize each open card's max-height to its actual content height
+requestAnimationFrame(() => {
+  document.querySelectorAll('.week-card:not(.collapsed) .week-card-body')
+    .forEach(body => { body.style.maxHeight = body.scrollHeight + 'px'; });
+});
 }
 
 function toggleWeekCard(i) {
   const card = document.getElementById('wcard-' + i);
-  if (card) card.classList.toggle('collapsed');
-}
-
-function parseWeekEnd(label) {
-  try {
-    const mo = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    let m = label.match(/^(\w+)\s+\d+\s*[–-]\s*(\d+),\s*(\d{4})$/);
-    if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    m = label.match(/^\w+\s+\d+\s*[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
-    if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    m = label.match(/[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
-    if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    return null;
-  } catch(e) { return null; }
+  if (!card) return;
+  const body = card.querySelector('.week-card-body');
+  if (card.classList.contains('collapsed')) {
+    // Expanding — measure actual content height first
+    card.classList.remove('collapsed');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  } else {
+    // Collapsing — pin current height, then animate to 0
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => { body.style.maxHeight = '0'; });
+    card.classList.add('collapsed');
+  }
 }
 
 function groupByWeeks(dues) {
