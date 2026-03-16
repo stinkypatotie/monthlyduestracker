@@ -1586,8 +1586,14 @@ async function confirmImport() {
     renderSidebar();
   }
 
-  closeImport();
+  // ── Reset import state so the next import works cleanly ──
   importParsedRows = [];
+  document.getElementById('import-file-input').value = '';
+  document.getElementById('import-filename').style.display = 'none';
+  document.getElementById('import-preview').style.display = 'none';
+  resetDropzone();
+
+  closeImport();
   showToast(
     `Imported ${ok} entr${ok !== 1 ? 'ies' : 'y'}! ✅${fail ? '  Failed: ' + fail : ''}`,
     fail ? 'error' : 'success'
