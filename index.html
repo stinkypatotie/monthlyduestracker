@@ -111,6 +111,29 @@ main { flex: 1; overflow-y: auto; padding: 28px 32px; }
 .pill-main   { background: var(--main-tag);   color: #fff; }
 .pill-branch { background: var(--branch-tag); color: #fff; }
 
+/* MODE SELECT in table */
+.mode-select {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.65rem;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .2s, color .2s;
+  width: auto;
+}
+.mode-select:hover { border-color: var(--accent); }
+.mode-select:focus { border-color: var(--accent); }
+.mode-select.mode-cash     { border-color: #22c55e55; color: var(--success); }
+.mode-select.mode-check    { border-color: #f5c84255; color: var(--accent); }
+.mode-select.mode-transfer { border-color: #3b82f655; color: #60a5fa; }
+.mode-select.mode-gcash    { border-color: #a855f755; color: #c084fc; }
+
+  
 /* FORM */
 .add-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 28px; }
 .add-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-bottom: 18px; }
@@ -473,9 +496,10 @@ body.light .supplier-cell { color: #4a5270; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
 /* WEEK CARD — collapsible + detail */
-.week-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-  margin-bottom: 10px; transition: border-color .2s, box-shadow .2s; overflow: hidden;
+.week-card-body {
+  max-height: 4000px; overflow: hidden;
+  transition: max-height .5s ease, opacity .25s;
+  opacity: 1;
 }
 .week-card:hover { border-color: #3d4559; }
 .week-card.collapsed {
@@ -1161,7 +1185,32 @@ async function deleteDue(id) {
     showToast('Entry deleted.', 'info');
   } catch(e) { showToast('Error deleting: ' + e.message, 'error'); }
 }
+// ══════════════════════════════════════════════════════
+// UPDATE MODE OF PAYMENT
+// ══════════════════════════════════════════════════════
+const modeClassMap = {'Cash':'mode-cash','Check':'mode-check','Bank Transfer':'mode-transfer','GCash':'mode-gcash'};
 
+async function updateMode(id, newMode, selectEl) {
+  // Update select styling immediately
+  if (selectEl) {
+    selectEl.className = 'mode-select ' + (modeClassMap[newMode] || '');
+  }
+  try {
+    if (currentUID && currentUID !== 'local-user' && !id.startsWith('local_')) {
+      await firebase.database().ref(`dues/${currentStore}/${id}/mode`).set(newMode);
+      // realtime listener will re-render sidebar automatically
+    } else {
+      const due = allDues.find(d => d.id === id);
+      if (due) {
+        due.mode = newMode;
+        localSave(allDues);
+        renderSidebar();
+      }
+    }
+  } catch(e) {
+    showToast('Error updating mode: ' + e.message, 'error');
+  }
+}
 // ══════════════════════════════════════════════════════
 // RENDER TABLE
 // ══════════════════════════════════════════════════════
@@ -1180,17 +1229,29 @@ function renderTable() {
     tfoot.innerHTML = ''; return;
   }
   const todayStr = today.toISOString().slice(0,10);
+  const MODES = ['Cash','Check','Bank Transfer','GCash','Other'];
+  const modeClassMap = {'Cash':'mode-cash','Check':'mode-check','Bank Transfer':'mode-transfer','GCash':'mode-gcash'};
+
   tbody.innerHTML = filtered.map(d => {
-    const overdue = d.dueDate < todayStr;
-    const modeClass = {'Cash':'mode-cash','Check':'mode-check','Bank Transfer':'mode-transfer','GCash':'mode-gcash'}[d.mode] || '';
+    const overdue   = d.dueDate < todayStr;
+    const modeClass = modeClassMap[d.mode] || '';
+    const modeOptions = MODES.map(m =>
+      `<option value="${m}" ${m === d.mode ? 'selected' : ''}>${m}</option>`
+    ).join('');
     return `<tr>
       <td class="due-date-cell ${overdue ? 'overdue' : ''}">${formatDate(d.dueDate)}${overdue ? ' ⚠' : ''}</td>
       <td class="supplier-cell">${escHtml(d.supplier)}</td>
-      <td><span class="mode-badge ${modeClass}">${escHtml(d.mode)}</span></td>
+      <td>
+        <select class="mode-select ${modeClass}"
+          onchange="updateMode('${d.id}', this.value, this)">
+          ${modeOptions}
+        </select>
+      </td>
       <td class="amount-cell">₱ ${formatPeso(d.amount)}</td>
       <td><button class="del-btn" onclick="deleteDue('${d.id}')" title="Delete">✕</button></td>
     </tr>`;
   }).join('');
+
   const total = filtered.reduce((s,d) => s + d.amount, 0);
   tfoot.innerHTML = `<tr class="total-row">
     <td colspan="3" style="text-align:right;color:var(--muted);font-size:.7rem;letter-spacing:1px;">TOTAL FOR ${MONTHS[viewMonth].toUpperCase()}</td>
