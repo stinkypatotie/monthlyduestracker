@@ -579,7 +579,7 @@ body.light .supplier-cell { color: #4a5270; }
         <span class="page-title">Payment Dues</span>
         <span class="store-pill" id="store-pill" style="display:none"></span>
       </div>
-      <button class="import-sheet-btn" onclick="openImport()">⬇ Import Sheet</button>
+      <button class="import-sheet-btn" onclick="openImport()">⬇ Import CSV</button>
     </div>
 
     <!-- ADD FORM -->
@@ -687,15 +687,8 @@ body.light .supplier-cell { color: #4a5270; }
 <div class="modal-overlay" id="import-overlay" onclick="overlayClose(event,'import-overlay')">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <div class="modal-title">⬇ Import from Google Sheets</div>
+      <div class="modal-title">⬇ Import CSV from Desktop</div>
       <button class="modal-close" onclick="closeImport()">✕</button>
-    </div>
-
-    <div style="font-size:.68rem;color:var(--muted);margin-bottom:14px;line-height:1.8">
-      In Google Sheets:<br>
-      <strong style="color:var(--text)">File → Share → Publish to web</strong>
-      → select your sheet tab → choose <strong style="color:var(--text)">CSV</strong>
-      → click Publish → paste the URL below.
     </div>
 
     <div style="font-size:.68rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.8">
@@ -705,14 +698,23 @@ body.light .supplier-cell { color: #4a5270; }
       Mode values: Cash · Check · Bank Transfer · GCash · Other</span>
     </div>
 
-    <label>PUBLISHED CSV URL</label>
-    <input type="text" id="import-url"
-      placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
-      style="margin-bottom:14px">
-
-    <button class="add-btn" onclick="fetchSheetCSV()" style="width:100%;margin-bottom:16px">
-      🔄 FETCH & PREVIEW
-    </button>
+    <!-- File drop zone -->
+    <div id="import-dropzone"
+      onclick="document.getElementById('import-file-input').click()"
+      ondragover="importDragOver(event)"
+      ondragleave="importDragLeave(event)"
+      ondrop="importDrop(event)"
+      style="border:2px dashed var(--border);border-radius:12px;padding:36px 20px;
+             text-align:center;cursor:pointer;transition:border-color .2s,background .2s;
+             margin-bottom:14px">
+      <div style="font-size:2rem;margin-bottom:10px">📂</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;margin-bottom:6px">
+        Click to choose a CSV file
+      </div>
+      <div style="font-size:.68rem;color:var(--muted)">or drag and drop it here</div>
+      <div id="import-filename" style="margin-top:10px;font-size:.72rem;color:var(--accent);display:none"></div>
+    </div>
+    <input type="file" id="import-file-input" accept=".csv,text/csv" style="display:none" onchange="importFileSelected(event)">
 
     <!-- Preview area -->
     <div id="import-preview" style="display:none">
@@ -731,7 +733,6 @@ body.light .supplier-cell { color: #4a5270; }
     </div>
   </div>
 </div>
-
 <!-- ═══════════ PASSWORD SPLASH ═══════════ -->
 <div id="pw-splash">
   <div class="pw-box">
@@ -1421,33 +1422,57 @@ function showToast(msg, type = 'info') {
 }
 
 // ══════════════════════════════════════════════════════
-// IMPORT FROM GOOGLE SHEETS (Option A — Published CSV URL)
+// IMPORT CSV FROM DESKTOP
 // ══════════════════════════════════════════════════════
 let importParsedRows = [];
 
 function openImport() {
   importParsedRows = [];
-  document.getElementById('import-url').value = '';
+  document.getElementById('import-file-input').value = '';
+  document.getElementById('import-filename').style.display = 'none';
   document.getElementById('import-preview').style.display = 'none';
   document.getElementById('import-store-label').textContent = currentStore;
+  resetDropzone();
   document.getElementById('import-overlay').classList.add('open');
 }
 function closeImport() {
   document.getElementById('import-overlay').classList.remove('open');
 }
 
-async function fetchSheetCSV() {
-  const url = document.getElementById('import-url').value.trim();
-  if (!url) { showToast('Paste the published CSV URL first.', 'error'); return; }
-  showToast('Fetching sheet…', 'info');
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    parseAndPreviewCSV(text);
-  } catch(e) {
-    showToast('Could not fetch sheet. Make sure it is published as CSV and the URL is correct.', 'error');
+function resetDropzone() {
+  const dz = document.getElementById('import-dropzone');
+  dz.style.borderColor  = '';
+  dz.style.background   = '';
+}
+function importDragOver(e) {
+  e.preventDefault();
+  const dz = document.getElementById('import-dropzone');
+  dz.style.borderColor = 'var(--accent)';
+  dz.style.background  = 'rgba(245,200,66,.05)';
+}
+function importDragLeave(e) { resetDropzone(); }
+function importDrop(e) {
+  e.preventDefault();
+  resetDropzone();
+  const file = e.dataTransfer.files[0];
+  if (file) readImportFile(file);
+}
+function importFileSelected(e) {
+  const file = e.target.files[0];
+  if (file) readImportFile(file);
+}
+
+function readImportFile(file) {
+  if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
+    showToast('Please select a .csv file.', 'error'); return;
   }
+  const nameEl = document.getElementById('import-filename');
+  nameEl.textContent = '📄 ' + file.name;
+  nameEl.style.display = 'block';
+  const reader = new FileReader();
+  reader.onload = e => parseAndPreviewCSV(e.target.result);
+  reader.onerror = () => showToast('Could not read the file.', 'error');
+  reader.readAsText(file);
 }
 
 function parseAndPreviewCSV(text) {
@@ -1568,7 +1593,6 @@ async function confirmImport() {
     fail ? 'error' : 'success'
   );
 }
-
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
