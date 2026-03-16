@@ -497,10 +497,17 @@ body.light .supplier-cell { color: #4a5270; }
 
 /* WEEK CARD — collapsible + detail */
 .week-card-body {
-  overflow: hidden;
-  transition: max-height .35s ease, opacity .25s;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows .3s ease, opacity .25s;
   opacity: 1;
-  /* max-height set dynamically via JS — no fixed limit */
+}
+.week-card.collapsed .week-card-body {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.week-card-body-inner {
+  overflow: hidden;
 }
 .week-card:hover { border-color: #3d4559; }
 .week-card.collapsed {
@@ -1387,27 +1394,11 @@ function renderSidebar() {
     </div>`;
   }).join('');
   window.__weeks = weeks;
-  // Initialize each open card's max-height to its actual content height
-requestAnimationFrame(() => {
-  document.querySelectorAll('.week-card:not(.collapsed) .week-card-body')
-    .forEach(body => { body.style.maxHeight = body.scrollHeight + 'px'; });
-});
 }
 
 function toggleWeekCard(i) {
   const card = document.getElementById('wcard-' + i);
-  if (!card) return;
-  const body = card.querySelector('.week-card-body');
-  if (card.classList.contains('collapsed')) {
-    // Expanding — measure actual content height first
-    card.classList.remove('collapsed');
-    body.style.maxHeight = body.scrollHeight + 'px';
-  } else {
-    // Collapsing — pin current height, then animate to 0
-    body.style.maxHeight = body.scrollHeight + 'px';
-    requestAnimationFrame(() => { body.style.maxHeight = '0'; });
-    card.classList.add('collapsed');
-  }
+  if (card) card.classList.toggle('collapsed');
 }
 
 function groupByWeeks(dues) {
