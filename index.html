@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monthly Dues Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -27,10 +27,10 @@
   --bg:        #0d0f14;
   --panel:     #13161e;
   --card:      #191d27;
-  --border:    #252a37;
+  --border:    #2a3040;
   --accent:    #f5c842;
-  --text:      #e8eaf0;
-  --muted:     #6b7280;
+  --text:      #edf0f8;
+  --muted:     #8896ae;
   --danger:    #ef4444;
   --success:   #22c55e;
   --main-tag:  #3b82f6;
@@ -39,8 +39,8 @@
   --sidebar-w: 270px;
   --header-h:  64px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
 /* HEADER */
 header {
@@ -48,11 +48,11 @@ header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 28px; position: sticky; top: 0; z-index: 100;
 }
-.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.5px; color: var(--accent); }
+.logo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.3rem; letter-spacing: -0.5px; color: var(--accent); }
 .logo span { color: var(--text); }
 .header-right { display: flex; align-items: center; gap: 12px; }
 .store-selector { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.store-btn { padding: 6px 20px; background: transparent; border: none; color: var(--muted); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; transition: all .2s; }
+.store-btn { padding: 6px 20px; background: transparent; border: none; color: var(--muted); font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; transition: all .2s; }
 .store-btn.active-main   { background: var(--main-tag);   color: #fff; }
 .store-btn.active-branch { background: var(--branch-tag); color: #fff; }
 .uid-badge { font-size: 0.65rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; }
@@ -66,49 +66,78 @@ header {
 
 /* SIDEBAR */
 aside { width: var(--sidebar-w); background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; padding: 20px 16px; flex-shrink: 0; order: 2; }
-.sidebar-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-.tg-btn { width: 100%; padding: 8px; background: #0088cc18; border: 1px solid #0088cc44; border-radius: 7px; color: #3ab4e8; font-size: 0.65rem; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: background .2s; }
+.sidebar-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.7rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.tg-btn { width: 100%; padding: 8px; background: #0088cc18; border: 1px solid #0088cc44; border-radius: 7px; color: #3ab4e8; font-size: 0.65rem; font-family: 'Nunito', sans-serif; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: background .2s; }
 .tg-btn:hover { background: #0088cc33; }
 
 /* MAIN */
 main { flex: 1; overflow-y: auto; padding: 28px 32px; }
 .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
-.page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; }
-.store-pill { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-left: 10px; vertical-align: middle; }
+.page-title { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.6rem; }
+.store-pill { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; margin-left: 10px; vertical-align: middle; }
 .pill-main   { background: var(--main-tag);   color: #fff; }
 .pill-branch { background: var(--branch-tag); color: #fff; }
 
 /* FORM */
 .add-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 28px; }
-.add-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-bottom: 18px; }
+.add-card h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-bottom: 18px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
 @media(max-width:900px){ .form-grid { grid-template-columns: 1fr 1fr; } }
-label { display: block; font-size: 0.65rem; color: var(--muted); margin-bottom: 5px; letter-spacing: .5px; }
-input, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color .2s; }
+label { display: block; font-size: 0.65rem; color: var(--muted); margin-bottom: 5px; letter-spacing: .5px; font-weight: 700; }
+input, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 0.88rem; outline: none; transition: border-color .2s; }
 input:focus, select:focus { border-color: var(--accent); }
 select option { background: var(--bg); }
-.add-btn { height: 42px; padding: 0 22px; background: var(--accent); color: #0d0f14; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: opacity .2s, transform .15s; white-space: nowrap; }
+.add-btn { height: 42px; padding: 0 22px; background: var(--accent); color: #0d0f14; border: none; border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: opacity .2s, transform .15s; white-space: nowrap; }
 .add-btn:hover { opacity: .85; transform: translateY(-1px); }
 .add-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
 /* TABLE */
 .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.table-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+.table-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1rem; }
 .month-nav { display: flex; align-items: center; gap: 10px; }
 .nav-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: border-color .2s; }
 .nav-btn:hover { border-color: var(--accent); }
-.month-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; min-width: 130px; text-align: center; }
+.month-label { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem; min-width: 130px; text-align: center; }
 table { width: 100%; border-collapse: collapse; }
-thead th { font-family: 'Syne', sans-serif; font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+thead th { font-family: 'Nunito', sans-serif; font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight: 800; }
 tbody tr { border-bottom: 1px solid #252a3722; transition: background .15s; }
 tbody tr:hover { background: var(--card); }
-td { padding: 12px 14px; font-size: 0.82rem; }
-.amount-cell { font-weight: 500; color: var(--accent); letter-spacing: .5px; }
+td { padding: 8px 14px; font-size: 0.84rem; }
+.amount-cell { font-weight: 700; color: var(--accent); letter-spacing: .5px; }
 .overdue { color: var(--danger) !important; }
 .supplier-cell { color: #a8b2c8; }
 
+/* INLINE EDITABLE CELLS */
+.cell-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  color: inherit;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.84rem;
+  font-weight: inherit;
+  width: 100%;
+  outline: none;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: border-color .2s, background .2s;
+  cursor: pointer;
+}
+.cell-input:hover {
+  border-bottom-color: var(--border);
+  background: rgba(245,200,66,.04);
+  cursor: text;
+}
+.cell-input:focus {
+  border-bottom-color: var(--accent);
+  background: rgba(245,200,66,.09);
+  cursor: text;
+}
+.cell-input.overdue { color: var(--danger); }
+.cell-input.amount-input { text-align: right; font-weight: 700; color: var(--accent); }
+
 /* MODE SELECT in table */
-.mode-select { background: transparent; border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 0.65rem; font-family: 'DM Mono', monospace; font-weight: 500; color: var(--muted); cursor: pointer; outline: none; transition: border-color .2s, color .2s; width: auto; }
+.mode-select { background: transparent; border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 0.65rem; font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--muted); cursor: pointer; outline: none; transition: border-color .2s, color .2s; width: auto; }
 .mode-select:hover, .mode-select:focus { border-color: var(--accent); }
 .mode-select.mode-cash     { border-color: #22c55e55; color: var(--success); }
 .mode-select.mode-check    { border-color: #f5c84255; color: var(--accent); }
@@ -119,7 +148,7 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 .del-btn:hover { color: var(--danger); background: #ef444422; }
 .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.85rem; }
 .empty-state .emoji { font-size: 2.5rem; margin-bottom: 12px; }
-.total-row td { font-family: 'Syne', sans-serif; font-weight: 700; border-top: 2px solid var(--border); color: var(--accent); font-size: 0.9rem; }
+.total-row td { font-family: 'Nunito', sans-serif; font-weight: 800; border-top: 2px solid var(--border); color: var(--accent); font-size: 0.9rem; }
 
 /* MODALS */
 .modal-overlay { position: fixed; inset: 0; background: #00000088; backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 500; opacity: 0; pointer-events: none; transition: opacity .25s; }
@@ -127,23 +156,23 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 520px; padding: 28px; transform: translateY(16px); transition: transform .25s; max-height: 90vh; overflow-y: auto; }
 .modal-overlay.open .modal { transform: translateY(0); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; }
+.modal-title { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.1rem; }
 .modal-close { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: background .2s, color .2s; }
 .modal-close:hover { background: var(--card); color: var(--text); }
 .settings-section { margin-bottom: 24px; }
-.settings-section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.settings-section-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 .token-row { display: flex; gap: 10px; align-items: flex-end; }
 .token-row > div { flex: 1; }
-.save-token-btn { height: 42px; padding: 0 18px; background: var(--tg); color: #fff; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: opacity .2s; white-space: nowrap; }
+.save-token-btn { height: 42px; padding: 0 18px; background: var(--tg); color: #fff; border: none; border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: opacity .2s; white-space: nowrap; }
 .save-token-btn:hover { opacity: .85; }
 .recipient-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .recipient-item { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 9px; padding: 10px 14px; }
-.recipient-info .r-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem; }
+.recipient-info .r-name { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.82rem; }
 .recipient-info .r-chatid { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
 .r-del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; transition: color .2s; }
 .r-del-btn:hover { color: var(--danger); }
 .add-recipient-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
-.add-recipient-btn { height: 42px; padding: 0 16px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: border-color .2s; }
+.add-recipient-btn { height: 42px; padding: 0 16px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: border-color .2s; }
 .add-recipient-btn:hover { border-color: var(--accent); }
 .empty-recipients { text-align: center; padding: 20px; color: var(--muted); font-size: 0.78rem; border: 1px dashed var(--border); border-radius: 8px; }
 .picker-modal { max-width: 380px; }
@@ -153,85 +182,124 @@ td { padding: 12px 14px; font-size: 0.82rem; }
 .picker-item.selected { border-color: var(--tg); background: #0088cc1a; }
 .picker-check { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all .2s; }
 .picker-item.selected .picker-check { background: var(--tg); border-color: var(--tg); color: #fff; }
-.picker-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
+.picker-name { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; }
 .picker-chatid { font-size: 0.65rem; color: var(--muted); }
-.send-selected-btn { width: 100%; padding: 12px; background: var(--tg); color: #fff; border: none; border-radius: 9px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: opacity .2s; margin-top: 8px; }
+.send-selected-btn { width: 100%; padding: 12px; background: var(--tg); color: #fff; border: none; border-radius: 9px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: opacity .2s; margin-top: 8px; }
 .send-selected-btn:hover { opacity: .85; }
 .send-selected-btn:disabled { opacity: .4; cursor: not-allowed; }
-.send-all-btn { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--tg); color: #3ab4e8; border-radius: 9px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: background .2s; margin-top: 6px; }
+.send-all-btn { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--tg); color: #3ab4e8; border-radius: 9px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: background .2s; margin-top: 6px; }
 .send-all-btn:hover { background: #0088cc18; }
 
 /* TOAST */
-#toast { position: fixed; bottom: 28px; right: 28px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; font-size: 0.82rem; opacity: 0; transform: translateY(10px); transition: all .3s; z-index: 9999; pointer-events: none; max-width: 320px; }
+#toast { position: fixed; bottom: 28px; right: 28px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; font-size: 0.82rem; font-weight: 600; opacity: 0; transform: translateY(10px); transition: all .3s; z-index: 9999; pointer-events: none; max-width: 320px; }
 #toast.show    { opacity: 1; transform: translateY(0); }
 #toast.success { border-color: var(--success); color: var(--success); }
 #toast.error   { border-color: var(--danger);  color: var(--danger); }
 #toast.info    { border-color: var(--tg);       color: #3ab4e8; }
 
-/* LIGHT THEME */
-body.light { --bg:#f0f2f7; --panel:#ffffff; --card:#f7f8fc; --border:#dde1ec; --accent:#d4a017; --text:#1a1d27; --muted:#7a8099; --danger:#dc2626; --success:#16a34a; --main-tag:#2563eb; --branch-tag:#9333ea; --tg:#0088cc; }
-body.light .week-card.collapsed { background: #eaecf3; }
-body.light tbody tr:hover { background: #eef0f8; }
-body.light .supplier-cell { color: #4a5270; }
+/* LIGHT THEME — inverted high contrast */
+body.light {
+  --bg:        #eef1f8;
+  --panel:     #ffffff;
+  --card:      #ffffff;
+  --border:    #c4ccdc;
+  --accent:    #9a6500;
+  --text:      #03060f;
+  --muted:     #374160;
+  --danger:    #b91c1c;
+  --success:   #14532d;
+  --main-tag:  #1d4ed8;
+  --branch-tag:#6b21a8;
+  --tg:        #005f99;
+}
+/* Invert logo span in light: "Dues"=dark text, "Track"=accent */
+body.light .logo { color: var(--text); }
+body.light .logo span { color: var(--accent); }
+body.light .splash-logo { color: var(--text); }
+body.light .splash-logo span { color: var(--accent); }
+body.light .pw-logo { color: var(--text); }
+body.light .pw-logo span { color: var(--accent); }
+body.light .week-card.collapsed { background: #e2e7f2; }
+body.light tbody tr:hover { background: #edf0f9; }
+body.light .supplier-cell { color: #1e2a48; }
+body.light input, body.light select { background: #f8f9fd; color: var(--text); border-color: var(--border); }
+body.light input::placeholder { color: #8a96b0; }
+body.light .cell-input { color: var(--text); }
+body.light .cell-input.supplier-cell { color: #1e2a48; }
+body.light .cell-input.amount-input { color: var(--accent); }
+body.light .cell-input:hover { border-bottom-color: #a0aec0; background: rgba(154,101,0,.05); }
+body.light .cell-input:focus { border-bottom-color: var(--accent); background: rgba(154,101,0,.1); }
+body.light .mode-select { background: transparent; color: var(--muted); }
+body.light .add-card { background: #f0f3fb; border-color: #c4ccdc; }
+body.light header { background: #ffffff; border-color: #c4ccdc; }
+body.light aside { background: #f5f7fd; border-color: #c4ccdc; }
+body.light .uid-badge { background: #eef1f8; border-color: #c4ccdc; color: var(--muted); }
+body.light .nav-btn { background: #eef1f8; border-color: #c4ccdc; }
+body.light .theme-btn, body.light .settings-btn { background: #eef1f8; border-color: #c4ccdc; }
+body.light .week-card { background: #f5f7fd; border-color: #c4ccdc; }
+body.light .week-card:hover { border-color: #8a96b0; }
+body.light .total-row td { color: var(--accent); }
 
 /* STORE SPLASH */
 #store-splash { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; z-index: 9000; transition: opacity .4s, transform .4s; }
 #store-splash.hiding { opacity: 0; transform: scale(1.04); pointer-events: none; }
 .splash-box { text-align: center; max-width: 420px; width: 90%; padding: 0 16px; }
-.splash-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 6px; }
+.splash-logo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 2rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 6px; }
 .splash-logo span { color: var(--text); }
-.splash-subtitle { font-size: 0.78rem; color: var(--muted); margin-bottom: 40px; letter-spacing: .5px; }
-.splash-prompt { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+.splash-subtitle { font-size: 0.78rem; color: var(--muted); margin-bottom: 40px; letter-spacing: .5px; font-weight: 600; }
+.splash-prompt { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
 .splash-stores { display: flex; gap: 16px; justify-content: center; }
 .splash-store-btn { flex: 1; max-width: 170px; padding: 28px 16px; border-radius: 16px; border: 2px solid var(--border); background: var(--card); cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .15s; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .splash-store-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.15); }
 .splash-store-btn.main-opt:hover   { border-color: var(--main-tag); }
 .splash-store-btn.branch-opt:hover { border-color: var(--branch-tag); }
 .splash-store-icon { font-size: 2.2rem; }
-.splash-store-label { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 1px; }
+.splash-store-label { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1rem; letter-spacing: 1px; }
 .splash-store-btn.main-opt   .splash-store-label { color: var(--main-tag); }
 .splash-store-btn.branch-opt .splash-store-label { color: var(--branch-tag); }
-.splash-store-desc { font-size: 0.65rem; color: var(--muted); }
+.splash-store-desc { font-size: 0.65rem; color: var(--muted); font-weight: 600; }
 
 /* THRESHOLD */
 .threshold-bar-wrap { margin: 0 0 8px 0; background: var(--bg); border-radius: 8px; overflow: hidden; height: 6px; border: 1px solid var(--border); }
 .threshold-bar { height: 100%; border-radius: 8px; transition: width .4s ease, background .3s; background: var(--success); }
 .threshold-bar.warn { background: #f59e0b; }
 .threshold-bar.over { background: var(--danger); }
-.threshold-status { display: flex; justify-content: space-between; align-items: center; font-size: 0.62rem; color: var(--muted); margin-bottom: 10px; }
-.threshold-status .ts-remaining { font-family: 'Syne', sans-serif; font-weight: 700; }
+.threshold-status { display: flex; justify-content: space-between; align-items: center; font-size: 0.62rem; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
+.threshold-status .ts-remaining { font-family: 'Nunito', sans-serif; font-weight: 800; }
 .threshold-status .ts-remaining.warn { color: #f59e0b; }
 .threshold-status .ts-remaining.over { color: var(--danger); }
 .threshold-status .ts-remaining.safe { color: var(--success); }
-.threshold-exceeded-banner { background: #ef444418; border: 1px solid #ef444455; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.68rem; color: var(--danger); font-family: 'Syne', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-.threshold-warn-banner { background: #f59e0b18; border: 1px solid #f59e0b55; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.68rem; color: #f59e0b; font-family: 'Syne', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.threshold-exceeded-banner { background: #ef444418; border: 1px solid #ef444455; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.68rem; color: var(--danger); font-family: 'Nunito', sans-serif; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+.threshold-warn-banner { background: #f59e0b18; border: 1px solid #f59e0b55; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.68rem; color: #f59e0b; font-family: 'Nunito', sans-serif; font-weight: 800; display: flex; align-items: center; gap: 6px; }
 .threshold-set-row { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-.threshold-set-row input { flex: 1; padding: 7px 10px; font-size: 0.78rem; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'DM Mono', monospace; outline: none; transition: border-color .2s; width: auto; }
+.threshold-set-row input { flex: 1; padding: 7px 10px; font-size: 0.78rem; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'Nunito', sans-serif; outline: none; transition: border-color .2s; width: auto; font-weight: 600; }
 .threshold-set-row input:focus { border-color: var(--accent); }
-.threshold-set-btn { padding: 7px 12px; background: var(--accent); color: #0d0f14; border: none; border-radius: 7px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.68rem; cursor: pointer; white-space: nowrap; transition: opacity .2s; }
+.threshold-set-btn { padding: 7px 12px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.68rem; cursor: pointer; white-space: nowrap; transition: opacity .2s; }
+body.light .threshold-set-btn { color: #0d0f14; }
 .threshold-set-btn:hover { opacity: .85; }
-.threshold-clear-btn { padding: 7px 10px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 7px; font-size: 0.68rem; cursor: pointer; transition: color .2s, border-color .2s; white-space: nowrap; }
+.threshold-clear-btn { padding: 7px 10px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 7px; font-size: 0.68rem; cursor: pointer; transition: color .2s, border-color .2s; white-space: nowrap; font-weight: 700; }
 .threshold-clear-btn:hover { color: var(--danger); border-color: var(--danger); }
 
 /* PASSWORD SPLASH */
 #pw-splash { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9100; transition: opacity .4s, transform .4s; }
 #pw-splash.hiding { opacity: 0; transform: scale(1.04); pointer-events: none; }
 .pw-box { text-align: center; max-width: 360px; width: 90%; padding: 0 16px; }
-.pw-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 6px; }
+.pw-logo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 2rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 6px; }
 .pw-logo span { color: var(--text); }
-.pw-subtitle { font-size: 0.75rem; color: var(--muted); margin-bottom: 40px; letter-spacing: .5px; }
+.pw-subtitle { font-size: 0.75rem; color: var(--muted); margin-bottom: 40px; letter-spacing: .5px; font-weight: 600; }
 .pw-lock { font-size: 2.8rem; margin-bottom: 20px; }
-.pw-prompt { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.pw-prompt { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
 .pw-input-wrap { position: relative; margin-bottom: 12px; }
-.pw-input-wrap input { width: 100%; padding: 14px 48px 14px 18px; background: var(--card); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 1rem; outline: none; transition: border-color .2s; text-align: center; letter-spacing: 3px; }
+.pw-input-wrap input { width: 100%; padding: 14px 48px 14px 18px; background: var(--card); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 1rem; outline: none; transition: border-color .2s; text-align: center; letter-spacing: 3px; font-weight: 700; }
 .pw-input-wrap input:focus { border-color: var(--accent); }
 .pw-input-wrap input.pw-error { border-color: var(--danger); animation: pwShake .3s ease; }
 .pw-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 4px; }
 @keyframes pwShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
-.pw-btn { width: 100%; padding: 14px; background: var(--accent); color: #0d0f14; border: none; border-radius: 12px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; letter-spacing: 1px; cursor: pointer; transition: opacity .2s, transform .15s; margin-bottom: 12px; }
+.pw-btn { width: 100%; padding: 14px; background: var(--accent); color: #0d0f14; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 0.95rem; letter-spacing: 1px; cursor: pointer; transition: opacity .2s, transform .15s; margin-bottom: 12px; }
+body.light .pw-btn { color: #0d0f14; }
 .pw-btn:hover { opacity: .88; transform: translateY(-1px); }
-.pw-error-msg { font-size: 0.72rem; color: var(--danger); min-height: 18px; font-family: 'Syne', sans-serif; font-weight: 700; }
-.pw-hint { font-size: 0.62rem; color: var(--muted); margin-top: 24px; }
+.pw-error-msg { font-size: 0.72rem; color: var(--danger); min-height: 18px; font-family: 'Nunito', sans-serif; font-weight: 800; }
+.pw-hint { font-size: 0.62rem; color: var(--muted); margin-top: 24px; font-weight: 600; }
 .pw-change-row { display: flex; gap: 8px; align-items: flex-end; }
 .pw-change-row > div { flex: 1; }
 
@@ -244,19 +312,16 @@ body.light .supplier-cell { color: #4a5270; }
 .week-card:hover { border-color: #3d4559; }
 .week-card.collapsed { background: #14171f; border: 1px dashed var(--border); opacity: 0.85; }
 .week-card.collapsed:hover { opacity: 1; border-color: var(--accent); box-shadow: 0 0 0 1px rgba(245,200,66,.15); }
+body.light .week-card:hover { border-color: #8fa0c0; }
 .week-card-header { padding: 12px 14px; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
 .week-card-header:hover { background: rgba(245,200,66,.04); }
 .week-card-meta { flex: 1; }
-.week-range  { font-size: 0.65rem; color: var(--muted); margin-bottom: 6px; }
-.week-total  { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--accent); }
-.week-count  { font-size: 0.6rem; color: var(--muted); margin-top: 3px; margin-bottom: 8px; }
+.week-range  { font-size: 0.65rem; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
+.week-total  { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--accent); }
+.week-count  { font-size: 0.6rem; color: var(--muted); margin-top: 3px; margin-bottom: 8px; font-weight: 600; }
 .week-card-chevron { font-size: 0.85rem; color: var(--muted); margin-left: 8px; transition: transform .25s; flex-shrink: 0; line-height: 1; }
 .week-card.collapsed .week-card-chevron { transform: rotate(-90deg); }
 
-/*
-  CSS-only flexible collapse using grid-template-rows trick.
-  No JS height measurement — adapts to any number of items automatically.
-*/
 .week-card-body {
   display: grid;
   grid-template-rows: 1fr;
@@ -267,14 +332,13 @@ body.light .supplier-cell { color: #4a5270; }
   grid-template-rows: 0fr;
   opacity: 0;
 }
-/* Inner wrapper must have overflow:hidden for the grid trick to clip content */
 .week-card-body-inner {
   overflow: hidden;
   padding: 0 14px 12px 14px;
-  min-height: 0; /* required for grid row collapse */
+  min-height: 0;
 }
 
-.week-past-badge { display: inline-block; font-size: 0.55rem; letter-spacing: .5px; background: #ef444422; border: 1px solid #ef444444; color: var(--danger); border-radius: 20px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+.week-past-badge { display: inline-block; font-size: 0.55rem; letter-spacing: .5px; background: #ef444422; border: 1px solid #ef444444; color: var(--danger); border-radius: 20px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; font-weight: 700; }
 .week-card.collapsed .week-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .week-card.collapsed .week-range { margin-bottom: 0; }
 .week-card.collapsed .week-total { font-size: 0.88rem; }
@@ -282,17 +346,17 @@ body.light .supplier-cell { color: #4a5270; }
 
 .due-detail-row { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid #252a3730; font-size: 0.72rem; }
 .due-detail-row:last-child { border-bottom: none; }
-.due-detail-supplier { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); font-size: 0.78rem; }
-.due-detail-line { color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.due-detail-amount { color: var(--accent); font-weight: 500; }
-.due-detail-mode-badge { display: inline-block; padding: 1px 7px; border-radius: 20px; font-size: 0.6rem; border: 1px solid var(--border); color: var(--muted); }
+.due-detail-supplier { font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--text); font-size: 0.78rem; }
+.due-detail-line { color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-weight: 600; }
+.due-detail-amount { color: var(--accent); font-weight: 700; }
+.due-detail-mode-badge { display: inline-block; padding: 1px 7px; border-radius: 20px; font-size: 0.6rem; border: 1px solid var(--border); color: var(--muted); font-weight: 700; }
 .due-detail-mode-cash     { border-color: #22c55e55; color: var(--success); }
 .due-detail-mode-check    { border-color: #f5c84255; color: var(--accent); }
 .due-detail-mode-transfer { border-color: #3b82f655; color: #60a5fa; }
 .due-detail-mode-gcash    { border-color: #a855f755; color: #c084fc; }
 
 /* IMPORT BUTTON */
-.import-sheet-btn { height: 36px; padding: 0 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: border-color .2s, color .2s; white-space: nowrap; }
+.import-sheet-btn { height: 36px; padding: 0 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: border-color .2s, color .2s; white-space: nowrap; }
 .import-sheet-btn:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
@@ -365,7 +429,7 @@ body.light .supplier-cell { color: #4a5270; }
     </div>
     <table>
       <thead>
-        <tr><th>Due Date</th><th>Supplier / Payee</th><th>Mode of Payment</th><th>Amount</th><th></th></tr>
+        <tr><th>Due Date</th><th>Supplier / Payee</th><th>Mode of Payment</th><th style="text-align:right">Amount</th><th></th></tr>
       </thead>
       <tbody id="dues-body"><tr><td colspan="5"><div class="empty-state"><div class="emoji">📋</div>No dues yet.</div></td></tr></tbody>
       <tfoot id="dues-foot"></tfoot>
@@ -386,7 +450,7 @@ body.light .supplier-cell { color: #4a5270; }
         <div><label>BOT TOKEN</label><input type="text" id="s-token" placeholder="e.g. 123456:ABCdef..."></div>
         <button class="save-token-btn" onclick="saveToken()">SAVE</button>
       </div>
-      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">Get your token from <strong style="color:#3ab4e8">@BotFather</strong> on Telegram.</div>
+      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;font-weight:600;">Get your token from <strong style="color:#3ab4e8">@BotFather</strong> on Telegram.</div>
     </div>
     <div class="settings-section">
       <div class="settings-section-title">👥 Recipients</div>
@@ -396,7 +460,7 @@ body.light .supplier-cell { color: #4a5270; }
         <div><label>CHAT ID</label><input type="text" id="r-chatid" placeholder="e.g. -100123456"></div>
         <button class="add-recipient-btn" onclick="addRecipient()">+ ADD</button>
       </div>
-      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">To get a Chat ID: forward a message to <strong style="color:#3ab4e8">@userinfobot</strong> on Telegram.</div>
+      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;font-weight:600;">To get a Chat ID: forward a message to <strong style="color:#3ab4e8">@userinfobot</strong> on Telegram.</div>
     </div>
     <div class="settings-section">
       <div class="settings-section-title">🔑 App Password</div>
@@ -405,7 +469,7 @@ body.light .supplier-cell { color: #4a5270; }
         <div><label>CONFIRM</label><input type="password" id="s-pw-confirm" placeholder="Confirm password"></div>
         <button class="save-token-btn" onclick="changeAppPassword()">SAVE</button>
       </div>
-      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;">Changing the password will apply to all devices on next login.</div>
+      <div style="font-size:.65rem;color:var(--muted);margin-top:8px;font-weight:600;">Changing the password will apply to all devices on next login.</div>
     </div>
     <button class="save-token-btn" style="width:100%;margin-top:4px;" onclick="closeSettings()">DONE</button>
   </div>
@@ -418,7 +482,7 @@ body.light .supplier-cell { color: #4a5270; }
       <div class="modal-title">📨 Send via Telegram</div>
       <button class="modal-close" onclick="closePicker()">✕</button>
     </div>
-    <div style="font-size:.72rem;color:var(--muted);margin-bottom:14px;" id="picker-week-label"></div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:14px;font-weight:600;" id="picker-week-label"></div>
     <div class="picker-list" id="picker-list"></div>
     <button class="send-selected-btn" id="send-selected-btn" onclick="sendToSelected()" disabled>Send to Selected</button>
     <button class="send-all-btn" onclick="sendToAll()">Send to All Recipients</button>
@@ -432,9 +496,9 @@ body.light .supplier-cell { color: #4a5270; }
       <div class="modal-title">⬇ Import CSV from Desktop</div>
       <button class="modal-close" onclick="closeImport()">✕</button>
     </div>
-    <div style="font-size:.68rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.8">
-      Expected column order: <span style="color:var(--accent);font-weight:700">Due Date · Amount · Supplier · Mode</span><br>
-      <span style="color:var(--muted)">Date formats: <code style="color:var(--text)">YYYY-MM-DD</code> or <code style="color:var(--text)">M/D/YYYY</code><br>
+    <div style="font-size:.68rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.8;font-weight:600;">
+      Expected column order: <span style="color:var(--accent);font-weight:800">Due Date · Amount · Supplier · Mode</span><br>
+      <span style="color:var(--muted)">Date formats: <code style="color:var(--text);font-weight:700">YYYY-MM-DD</code> or <code style="color:var(--text);font-weight:700">M/D/YYYY</code><br>
       Mode values: Cash · Check · Bank Transfer · GCash · Other</span>
     </div>
     <div id="import-dropzone"
@@ -444,17 +508,17 @@ body.light .supplier-cell { color: #4a5270; }
       ondrop="importDrop(event)"
       style="border:2px dashed var(--border);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:14px">
       <div style="font-size:2rem;margin-bottom:10px">📂</div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;margin-bottom:6px">Click to choose a CSV file</div>
-      <div style="font-size:.68rem;color:var(--muted)">or drag and drop it here</div>
-      <div id="import-filename" style="margin-top:10px;font-size:.72rem;color:var(--accent);display:none"></div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;margin-bottom:6px">Click to choose a CSV file</div>
+      <div style="font-size:.68rem;color:var(--muted);font-weight:600;">or drag and drop it here</div>
+      <div id="import-filename" style="margin-top:10px;font-size:.72rem;color:var(--accent);display:none;font-weight:700;"></div>
     </div>
     <input type="file" id="import-file-input" accept=".csv,text/csv" style="display:none" onchange="importFileSelected(event)">
     <div id="import-preview" style="display:none">
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">
+      <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:.7rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">
         Preview — <span id="import-preview-count" style="color:var(--accent)"></span>
       </div>
       <div id="import-preview-table" style="max-height:220px;overflow-y:auto;margin-bottom:10px;border:1px solid var(--border);border-radius:8px"></div>
-      <div id="import-error-list" style="font-size:.68rem;color:var(--danger);margin-bottom:10px;line-height:1.6"></div>
+      <div id="import-error-list" style="font-size:.68rem;color:var(--danger);margin-bottom:10px;line-height:1.6;font-weight:700;"></div>
       <button class="add-btn" id="import-confirm-btn" onclick="confirmImport()" style="width:100%">
         ✅ IMPORT TO <span id="import-store-label"></span>
       </button>
@@ -755,6 +819,35 @@ async function deleteDue(id) {
 }
 
 // ══════════════════════════════════════════════════════
+// UPDATE FIELD (inline edit)
+// ══════════════════════════════════════════════════════
+async function updateField(id, field, value) {
+  if (field === 'amount') {
+    value = parseFloat(String(value).replace(/,/g,''));
+    if (isNaN(value) || value <= 0) { showToast('Invalid amount.', 'error'); renderTable(); return; }
+  }
+  if (field === 'supplier') {
+    value = value.trim();
+    if (!value) { showToast('Supplier cannot be empty.', 'error'); renderTable(); return; }
+  }
+  if (field === 'dueDate' && !value) { showToast('Invalid date.', 'error'); renderTable(); return; }
+  try {
+    if (currentUID && currentUID !== 'local-user' && !id.startsWith('local_')) {
+      await firebase.database().ref(`dues/${currentStore}/${id}/${field}`).set(value);
+    } else {
+      const due = allDues.find(d => d.id === id);
+      if (due) { due[field] = value; localSave(allDues); }
+    }
+    // Update local cache
+    const due = allDues.find(d => d.id === id);
+    if (due) due[field] = value;
+    if (field === 'dueDate') { allDues.sort((a,b) => a.dueDate.localeCompare(b.dueDate)); renderTable(); }
+    renderSidebar();
+    showToast('Updated! ✅', 'success');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════
 // UPDATE MODE OF PAYMENT
 // ══════════════════════════════════════════════════════
 const MODE_CLASS_MAP = { 'Cash':'mode-cash', 'Check':'mode-check', 'Bank Transfer':'mode-transfer', 'GCash':'mode-gcash' };
@@ -789,15 +882,35 @@ function renderTable() {
     const modeClass = MODE_CLASS_MAP[d.mode] || '';
     const modeOpts  = MODES.map(m=>`<option value="${m}" ${m===d.mode?'selected':''}>${m}</option>`).join('');
     return `<tr>
-      <td class="${overdue?'overdue':''}">${formatDate(d.dueDate)}${overdue?' ⚠':''}</td>
-      <td class="supplier-cell">${escHtml(d.supplier)}</td>
-      <td><select class="mode-select ${modeClass}" onchange="updateMode('${d.id}',this.value,this)">${modeOpts}</select></td>
-      <td class="amount-cell">₱ ${formatPeso(d.amount)}</td>
+      <td>
+        <input type="date" class="cell-input${overdue?' overdue':''}"
+          value="${d.dueDate}"
+          onchange="updateField('${d.id}','dueDate',this.value)"
+          title="${overdue?'⚠ Overdue':''}">
+      </td>
+      <td>
+        <input type="text" class="cell-input supplier-cell"
+          value="${escHtml(d.supplier)}"
+          onblur="updateField('${d.id}','supplier',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+      <td>
+        <select class="mode-select ${modeClass}" onchange="updateMode('${d.id}',this.value,this)">${modeOpts}</select>
+      </td>
+      <td>
+        <input type="text" class="cell-input amount-input"
+          value="${formatPeso(d.amount)}"
+          onfocus="this.value=this.value.replace(/,/g,'')"
+          oninput="formatAmountInput(this)"
+          onblur="(function(el){var v=parseFloat(el.value.replace(/,/g,''));if(!isNaN(v)&&v>0){updateField('${d.id}','amount',v);el.value=formatPeso(v);}else{el.value=formatPeso(${d.amount});}})(this)"
+          onkeydown="if(event.key==='Enter')this.blur()"
+          style="text-align:right">
+      </td>
       <td><button class="del-btn" onclick="deleteDue('${d.id}')">✕</button></td>
     </tr>`;
   }).join('');
   const total = filtered.reduce((s,d)=>s+d.amount,0);
-  tfoot.innerHTML = `<tr class="total-row"><td colspan="3" style="text-align:right;color:var(--muted);font-size:.7rem;letter-spacing:1px;">TOTAL FOR ${MONTHS[viewMonth].toUpperCase()}</td><td class="amount-cell">₱ ${formatPeso(total)}</td><td></td></tr>`;
+  tfoot.innerHTML = `<tr class="total-row"><td colspan="3" style="text-align:right;color:var(--muted);font-size:.7rem;letter-spacing:1px;">TOTAL FOR ${MONTHS[viewMonth].toUpperCase()}</td><td style="text-align:right" class="amount-cell">₱ ${formatPeso(total)}</td><td></td></tr>`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -831,8 +944,6 @@ function formatThresholdInput(el) {
 
 // ══════════════════════════════════════════════════════
 // RENDER SIDEBAR
-// Uses CSS grid-template-rows trick for flexible collapse.
-// No JS height measurement — content determines its own height.
 // ══════════════════════════════════════════════════════
 function renderSidebar() {
   loadThreshold();
@@ -846,7 +957,7 @@ function renderSidebar() {
   el.innerHTML = weeks.map((w, i) => {
     const weekEndDate = parseWeekEnd(w.label);
     const isPast      = weekEndDate && weekEndDate < todayMidnight;
-    const collapsedClass = isPast ? 'collapsed' : '';
+    const collapsedClass = 'collapsed';
     const pastBadge   = isPast ? '<span class="week-past-badge">PAST</span>' : '';
 
     const mcm = { 'Cash':'due-detail-mode-cash','Check':'due-detail-mode-check','Bank Transfer':'due-detail-mode-transfer','GCash':'due-detail-mode-gcash' };
@@ -909,7 +1020,6 @@ function renderSidebar() {
   window.__weeks = weeks;
 }
 
-// Simple toggle — CSS grid does all the animation work
 function toggleWeekCard(i) {
   const card = document.getElementById('wcard-' + i);
   if (card) card.classList.toggle('collapsed');
@@ -1042,16 +1152,16 @@ function parseAndPreviewCSV(text) {
   document.getElementById('import-preview-table').innerHTML = valid.length
     ? `<table style="width:100%;border-collapse:collapse;font-size:.72rem">
         <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border)">
-          <th style="padding:8px 10px;text-align:left;font-weight:600">Date</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:600">Supplier</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:600">Mode</th>
-          <th style="padding:8px 10px;text-align:right;font-weight:600">Amount</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700">Date</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700">Supplier</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700">Mode</th>
+          <th style="padding:8px 10px;text-align:right;font-weight:700">Amount</th>
         </tr></thead>
         <tbody>${valid.map(r=>`<tr style="border-top:1px solid #252a3730">
           <td style="padding:7px 10px">${formatDate(r.dueDate)}</td>
-          <td style="padding:7px 10px;color:#a8b2c8">${escHtml(r.supplier)}</td>
+          <td style="padding:7px 10px;color:var(--muted)">${escHtml(r.supplier)}</td>
           <td style="padding:7px 10px;color:var(--muted)">${escHtml(r.mode)}</td>
-          <td style="padding:7px 10px;text-align:right;color:var(--accent)">₱${formatPeso(r.amount)}</td>
+          <td style="padding:7px 10px;text-align:right;color:var(--accent);font-weight:700">₱${formatPeso(r.amount)}</td>
         </tr>`).join('')}</tbody></table>`
     : `<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:20px">No valid rows found.</div>`;
   document.getElementById('import-error-list').innerHTML = errors.length ? '⚠ Skipped rows:<br>' + errors.join('<br>') : '';
@@ -1072,7 +1182,6 @@ async function confirmImport() {
     } catch(e) { fail++; }
   }
   if (currentUID === 'local-user') { allDues.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)); localSave(allDues); renderTable(); renderSidebar(); }
-  // Reset for next import
   importParsedRows = [];
   document.getElementById('import-file-input').value = '';
   document.getElementById('import-filename').style.display = 'none';
