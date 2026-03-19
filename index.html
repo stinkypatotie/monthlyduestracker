@@ -1249,4 +1249,86 @@ function importDragLeave()  { resetDropzone(); }
 function importDrop(e)      { e.preventDefault(); resetDropzone(); const f=e.dataTransfer.files[0]; if(f) readImportFile(f); }
 function importFileSelected(e) { const f=e.target.files[0]; if(f) readImportFile(f); }
 function readImportFile(file) {
-  if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') { showToast('Please s
+  if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') { showToast('Please select a .csv file.', 'error'); return; }
+  const nameEl = document.getElementById('import-filename');
+  nameEl.textContent = '📄 ' + file.name; nameEl.style.display = 'block';
+  const reader = new FileReader();
+  reader.onload  = e => parseAndPreviewCSV(e.target.result);
+  reader.onerror = () => showToast('Could not read the file.', 'error');
+  reader.readAsText(file);
+}
+function parseAndPreviewCSV(text) {
+  const lines = text.trim().split('\n');
+  let startRow = 0;
+  const firstCell = lines[0].split(',')[0].trim().replace(/"/g,'');
+  if (isNaN(Date.parse(firstCell)) && isNaN(parseFloat(firstCell))) startRow = 1;
+  const VALID_MODES = ['Cash','Check','Bank Transfer','GCash','Other'];
+  const valid = [], errors = [];
+  for (let i = startRow; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+    if (cols.length < 3 || cols.every(c=>!c)) continue;
+    const [rawDate, rawAmount, rawSupplier, rawMode] = cols;
+    let dateStr = '';
+    const d1 = rawDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    const d2 = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if      (d1) dateStr = `${d1[1]}-${d1[2].padStart(2,'0')}-${d1[3].padStart(2,'0')}`;
+    else if (d2) dateStr = `${d2[3]}-${d2[1].padStart(2,'0')}-${d2[2].padStart(2,'0')}`;
+    else { errors.push(`Row ${i+1}: invalid date "${rawDate}"`); continue; }
+    const amount = parseFloat(rawAmount.replace(/,/g,''));
+    if (isNaN(amount)||amount<=0) { errors.push(`Row ${i+1}: invalid amount "${rawAmount}"`); continue; }
+    if (!rawSupplier) { errors.push(`Row ${i+1}: missing supplier`); continue; }
+    let mode = (rawMode||'').trim(); if (!VALID_MODES.includes(mode)) mode = 'Cash';
+    valid.push({ dueDate:dateStr, amount, supplier:rawSupplier, mode });
+  }
+  importParsedRows = valid;
+  document.getElementById('import-preview-count').textContent = valid.length + ' row' + (valid.length!==1?'s':'') + ' ready';
+  document.getElementById('import-preview-table').innerHTML = valid.length
+    ? `<table style="width:100%;border-collapse:collapse;font-size:.72rem">
+        <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+          <th style="padding:8px 10px;text-align:left;font-weight:700">Date</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700">Supplier</th>
+          <th style="padding:8px 10px;text-align:left;font-weight:700">Mode</th>
+          <th style="padding:8px 10px;text-align:right;font-weight:700">Amount</th>
+        </tr></thead>
+        <tbody>${valid.map(r=>`<tr style="border-top:1px solid #252a3730">
+          <td style="padding:7px 10px">${formatDate(r.dueDate)}</td>
+          <td style="padding:7px 10px;color:var(--muted)">${escHtml(r.supplier)}</td>
+          <td style="padding:7px 10px;color:var(--muted)">${escHtml(r.mode)}</td>
+          <td style="padding:7px 10px;text-align:right;color:var(--accent);font-weight:700">₱${formatPeso(r.amount)}</td>
+        </tr>`).join('')}</tbody></table>`
+    : `<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:20px">No valid rows found.</div>`;
+  document.getElementById('import-error-list').innerHTML = errors.length ? '⚠ Skipped rows:<br>' + errors.join('<br>') : '';
+  document.getElementById('import-confirm-btn').disabled = valid.length === 0;
+  document.getElementById('import-preview').style.display = 'block';
+}
+async function confirmImport() {
+  if (!importParsedRows.length) return;
+  const btn = document.getElementById('import-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  let ok = 0, fail = 0;
+  for (const row of importParsedRows) {
+    const entry = { store:currentStore, dueDate:row.dueDate, amount:row.amount, supplier:row.supplier, mode:row.mode, createdAt:new Date().toISOString() };
+    try {
+      if (currentUID && currentUID !== 'local-user') { await firebase.database().ref(`dues/${currentStore}`).push(entry); }
+      else { entry.id='local_'+Date.now()+'_'+ok; allDues.push(entry); }
+      ok++;
+    } catch(e) { fail++; }
+  }
+  if (currentUID === 'local-user') { allDues.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)); localSave(allDues); renderTable(); renderSidebar(); }
+  importParsedRows = [];
+  document.getElementById('import-file-input').value = '';
+  document.getElementById('import-filename').style.display = 'none';
+  document.getElementById('import-preview').style.display = 'none';
+  resetDropzone();
+  closeImport();
+  showToast(`Imported ${ok} entr${ok!==1?'ies':'y'}! ✅${fail?'  Failed: '+fail:''}`, fail?'error':'success');
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('f-date').value = today.toISOString().slice(0,10);
+loadTgSettings();
+</script>
+</body>
+</html>
