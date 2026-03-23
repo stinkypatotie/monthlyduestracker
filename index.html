@@ -502,7 +502,7 @@ body.light .week-card:hover { border-color: #8fa0c0; }
 
     <table>
       <thead>
-        <tr><th>Due Date</th><th>Supplier / Payee</th><th>Mode of Payment</th><th style="text-align:right">Amount</th><th></th></tr>
+        <tr><th>Due Date</th><th style="text-align:right">Amount</th><th>Supplier / Payee</th><th>Mode of Payment</th><th></th></tr>
       </thead>
       <tbody id="dues-body"><tr><td colspan="5"><div class="empty-state"><div class="emoji">📋</div>No dues yet.</div></td></tr></tbody>
       <tfoot id="dues-foot"></tfoot>
@@ -1015,15 +1015,6 @@ function renderTable() {
           title="${overdue?'⚠ Overdue':''}">
       </td>
       <td>
-        <input type="text" class="cell-input supplier-cell"
-          value="${escHtml(d.supplier)}"
-          onblur="updateField('${d.id}','supplier',this.value)"
-          onkeydown="if(event.key==='Enter')this.blur()">
-      </td>
-      <td>
-        <select class="mode-select ${modeClass}" onchange="updateMode('${d.id}',this.value,this)">${modeOpts}</select>
-      </td>
-      <td>
         <input type="text" class="cell-input amount-input"
           value="${formatPeso(d.amount)}"
           onfocus="this.value=this.value.replace(/,/g,'')"
@@ -1031,6 +1022,15 @@ function renderTable() {
           onblur="(function(el){var v=parseFloat(el.value.replace(/,/g,''));if(!isNaN(v)&&v>0){updateField('${d.id}','amount',v);el.value=formatPeso(v);}else{el.value=formatPeso(${d.amount});}})(this)"
           onkeydown="if(event.key==='Enter')this.blur()"
           style="text-align:right">
+      </td>
+      <td>
+        <input type="text" class="cell-input supplier-cell"
+          value="${escHtml(d.supplier)}"
+          onblur="updateField('${d.id}','supplier',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+      <td>
+        <select class="mode-select ${modeClass}" onchange="updateMode('${d.id}',this.value,this)">${modeOpts}</select>
       </td>
       <td><button class="del-btn" onclick="deleteDue('${d.id}')">✕</button></td>
     </tr>`;
