@@ -851,6 +851,7 @@ function loadDues() {
       allDues = data ? Object.entries(data).map(([id,v]) => ({id,...v})) : [];
       allDues.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
       renderTable(); renderSidebar();
+      checkWeeklyBackup();
     }, e => {
       console.warn('RTDB error:', e.message);
       if (e.message && e.message.toLowerCase().includes('permission')) showToast('⚠ Firebase permission denied.', 'error');
@@ -1341,6 +1342,47 @@ async function confirmImport() {
 // ══════════════════════════════════════════════════════
 document.getElementById('f-date').value = today.toISOString().slice(0,10);
 loadTgSettings();
+
+// ══════════════════════════════════════════════════════
+// WEEKLY AUTO BACKUP (every Monday)
+// ══════════════════════════════════════════════════════
+function generateBackupCSV(dues) {
+  const header = ['Due Date', 'Amount', 'Supplier', 'Mode of Payment'];
+  const rows = dues.map(d => [
+    d.dueDate,
+    d.amount,
+    `"${String(d.supplier).replace(/"/g, '""')}"`,
+    d.mode
+  ]);
+  return [header.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+}
+
+function checkWeeklyBackup() {
+  if (!currentStore || !allDues.length) return;
+  const now      = new Date();
+  const isMonday = now.getDay() === 1;                          // 0=Sun … 1=Mon
+  if (!isMonday) return;
+
+  const todayStr  = now.toISOString().slice(0, 10);             // YYYY-MM-DD
+  const key       = `backup_last_${currentStore}`;
+  const lastBackup = localStorage.getItem(key);
+  if (lastBackup === todayStr) return;                          // already backed up today
+
+  // Build and trigger download
+  const csv      = generateBackupCSV(allDues);
+  const blob     = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href         = url;
+  a.download     = `DuesTrack_${currentStore}_${todayStr}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  localStorage.setItem(key, todayStr);
+  showToast(`📦 Weekly backup saved — ${currentStore} (${todayStr})`, 'success');
+}
 </script>
 </body>
 </html>
