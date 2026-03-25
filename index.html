@@ -870,6 +870,18 @@ async function addDue() {
   if (!dateVal || !amountRaw || !supplier) { showToast('Please fill in all fields.', 'error'); return; }
   const amount = parseFloat(amountRaw);
   if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount.', 'error'); return; }
+  // ── DUPLICATE CHECK ──────────────────────────────
+  const isDuplicate = allDues.some(d =>
+    d.dueDate   === dateVal &&
+    d.amount    === amount  &&
+    d.supplier.trim().toLowerCase() === supplier.toLowerCase() &&
+    d.mode      === mode
+  );
+  if (isDuplicate) {
+    if (!confirm(`⚠️ A duplicate entry already exists:\n\n  📅 ${dateVal}\n  ₱ ${formatPeso(amount)}\n  🏷 ${supplier}\n  💳 ${mode}\n\nAdd it anyway?`)) return;
+  }
+  // ─────────────────────────────────────────────────
+
   const entry = { store: currentStore, dueDate: dateVal, amount, supplier, mode, createdAt: new Date().toISOString() };
   try {
     if (currentUID && currentUID !== 'local-user') { await firebase.database().ref(`dues/${currentStore}`).push(entry); }
