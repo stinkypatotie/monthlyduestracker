@@ -861,6 +861,32 @@ function loadDues() {
 }
 
 // ══════════════════════════════════════════════════════
+// AUTO-MIRROR TO BRANCH
+// Triggered when SUPPLIER/PAYEE contains (BRANCH - <amount>)
+// Copies the entry to BRANCH with the extracted amount.
+// ══════════════════════════════════════════════════════
+async function maybeMirrorToBranch(dueDate, supplier, mode) {
+  if (currentStore !== 'MAIN') return;
+  // Match pattern: (BRANCH - 1234)  or  (BRANCH - 1,234.50)  — case-insensitive
+  const match = supplier.match(/\(BRANCH\s*-\s*([\d,]+(?:\.\d+)?)\)/i);
+  if (!match) return;
+  const branchAmount = parseFloat(match[1].replace(/,/g, ''));
+  if (isNaN(branchAmount) || branchAmount <= 0) return;
+  // Strip the marker from the supplier name for the BRANCH entry
+  const branchSupplier = supplier.replace(/\s*\(BRANCH\s*-\s*[\d,]+(?:\.\d+)?\)/i, '').trim() || supplier;
+  const branchEntry = { store: 'BRANCH', dueDate, amount: branchAmount, supplier: branchSupplier, mode, createdAt: new Date().toISOString() };
+  try {
+    if (currentUID && currentUID !== 'local-user') {
+      await firebase.database().ref('dues/BRANCH').push(branchEntry);
+    } else {
+      // Local-mode fallback: can't write to BRANCH while on MAIN; just notify
+      showToast('⚠ Branch mirror skipped (offline mode).', 'error'); return;
+    }
+    showToast(`🔀 Branch entry also added! ₱${formatPeso(branchAmount)}`, 'info');
+  } catch(e) { showToast('Branch mirror failed: ' + e.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════
 // ADD DUE
 // ══════════════════════════════════════════════════════
 async function addDue() {
@@ -889,6 +915,7 @@ async function addDue() {
     else { entry.id = 'local_' + Date.now(); allDues.push(entry); allDues.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)); localSave(allDues); renderTable(); renderSidebar(); }
     showToast('Due added! ✅', 'success'); clearForm();
     const d = new Date(dateVal + 'T00:00:00'); viewYear = d.getFullYear(); viewMonth = d.getMonth();
+    await maybeMirrorToBranch(dateVal, supplier, mode); // ← auto-mirror if supplier has (BRANCH - amount)
   } catch(e) { showToast('Error saving: ' + e.message, 'error'); }
 }
 
