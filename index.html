@@ -398,6 +398,12 @@ body.light .week-card:hover { border-color: #8fa0c0; }
 .week-card.collapsed .week-total { font-size: 0.88rem; }
 .week-card.collapsed .week-count { margin: 0; }
 
+/* WEEK TABS */
+.week-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.week-tab { flex: 1; padding: 6px 0; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.65rem; letter-spacing: .5px; color: var(--muted); cursor: pointer; text-align: center; transition: border-color .2s, color .2s, background .2s; }
+.week-tab.active { background: var(--accent); border-color: var(--accent); color: #0d0f14; }
+.week-tab:not(.active):hover { border-color: var(--accent); color: var(--accent); }
+
 .due-detail-row { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid #252a3730; font-size: 0.72rem; }
 .due-detail-row:last-child { border-bottom: none; }
 .due-detail-supplier { font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--text); font-size: 0.78rem; }
@@ -435,12 +441,17 @@ body.light .week-card:hover { border-color: #8fa0c0; }
   <!-- SIDEBAR -->
   <aside>
     <div class="sidebar-title">Weekly Summary</div>
+    <div class="week-tabs">
+      <button class="week-tab active" id="wtab-upcoming" onclick="switchWeekTab('upcoming')">Upcoming</button>
+      <button class="week-tab" id="wtab-past" onclick="switchWeekTab('past')">Past</button>
+    </div>
     <div class="threshold-set-row">
       <input type="text" id="threshold-input" placeholder="Weekly limit ₱" oninput="formatThresholdInput(this)">
       <button class="threshold-set-btn" onclick="saveThreshold()">SET</button>
       <button class="threshold-clear-btn" onclick="clearThreshold()" title="Remove limit">✕</button>
     </div>
     <div id="week-list"><div style="color:var(--muted);font-size:.75rem;text-align:center;padding:20px 0">Loading…</div></div>
+    <div id="week-list-past" style="display:none"></div>
   </aside>
 
   <!-- MAIN -->
@@ -723,6 +734,7 @@ const today  = new Date();
 let viewYear = today.getFullYear(), viewMonth = today.getMonth();
 let tgToken = '', tgRecipients = [];
 let pickerWeekIndex = null, selectedRecipients = new Set();
+let activeWeekTab = 'upcoming';
 
 // ══════════════════════════════════════════════════════
 // TELEGRAM SETTINGS
@@ -799,6 +811,14 @@ async function doSend(targets) {
   closePicker();
   if (fail===0) showToast(`Sent to ${ok} recipient${ok!==1?'s':''}! 📨`, 'success');
   else          showToast(`Sent: ${ok} ✅  Failed: ${fail} ❌`, 'error');
+}
+
+function switchWeekTab(tab) {
+  activeWeekTab = tab;
+  document.getElementById('wtab-upcoming').classList.toggle('active', tab === 'upcoming');
+  document.getElementById('wtab-past').classList.toggle('active', tab === 'past');
+  document.getElementById('week-list').style.display      = tab === 'upcoming' ? '' : 'none';
+  document.getElementById('week-list-past').style.display = tab === 'past'     ? '' : 'none';
 }
 
 function overlayClose(e, id) { if (e.target.id === id) document.getElementById(id).classList.remove('open'); }
@@ -1118,13 +1138,21 @@ function formatThresholdInput(el) {
 function renderSidebar() {
   loadThreshold();
   const weeks = groupByWeeks(allDues);
-  const el    = document.getElementById('week-list');
-  if (!weeks.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px 0">No dues yet.</div>'; return; }
+  const upcomingEl = document.getElementById('week-list');
+  const pastEl     = document.getElementById('week-list-past');
+  if (!weeks.length) {
+    upcomingEl.innerHTML = '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px 0">No dues yet.</div>';
+    pastEl.innerHTML = '';
+    return;
+  }
 
   const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   let hasAlerted = false;
 
-  el.innerHTML = weeks.map((w, i) => {
+  const upcomingHtml = [];
+  const pastHtml     = [];
+
+  weeks.forEach((w, i) => {
     const weekEndDate = parseWeekEnd(w.label);
     const isPast      = weekEndDate && weekEndDate < todayMidnight;
     const collapsedClass = 'collapsed';
@@ -1167,7 +1195,7 @@ function renderSidebar() {
         </div>`;
     }
 
-    return `
+    const cardHtml = `
     <div class="week-card ${collapsedClass}" id="wcard-${i}">
       <div class="week-card-header" onclick="toggleWeekCard(${i})">
         <div class="week-card-meta">
@@ -1185,7 +1213,21 @@ function renderSidebar() {
         </div>
       </div>
     </div>`;
-  }).join('');
+
+    if (isPast) pastHtml.push(cardHtml);
+    else        upcomingHtml.push(cardHtml);
+  });
+
+  upcomingEl.innerHTML = upcomingHtml.length
+    ? upcomingHtml.join('')
+    : '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px 0">No upcoming dues.</div>';
+  pastEl.innerHTML = pastHtml.length
+    ? pastHtml.join('')
+    : '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px 0">No past weeks.</div>';
+
+  // Keep correct visibility based on active tab
+  upcomingEl.style.display = activeWeekTab === 'upcoming' ? '' : 'none';
+  pastEl.style.display     = activeWeekTab === 'past'     ? '' : 'none';
 
   window.__weeks = weeks;
 }
