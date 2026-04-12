@@ -1249,6 +1249,9 @@ function parseWeekEnd(label) {
     return null;
   } catch(e) { return null; }
 }
+function dateToYMD(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 function groupByWeeks(dues) {
   if (!dues.length) return [];
   const dates = dues.map(d=>d.dueDate).sort();
@@ -1258,7 +1261,8 @@ function groupByWeeks(dues) {
   const weeks = []; let cur = new Date(startSat);
   while (cur <= lastDate) {
     const weekStart=new Date(cur), weekEnd=new Date(cur); weekEnd.setDate(weekEnd.getDate()+6);
-    const weekDues = dues.filter(d=>{ const dt=new Date(d.dueDate+'T00:00:00'); return dt>=weekStart&&dt<=weekEnd; });
+    const wsStr = dateToYMD(weekStart), weStr = dateToYMD(weekEnd);
+    const weekDues = dues.filter(d => d.dueDate >= wsStr && d.dueDate <= weStr);
     if (weekDues.length) weeks.push({ label:fmtRange(weekStart,weekEnd), total:weekDues.reduce((s,d)=>s+d.amount,0), count:weekDues.length, dues:weekDues });
     cur.setDate(cur.getDate()+7);
   }
