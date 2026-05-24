@@ -1153,7 +1153,7 @@ function renderSidebar() {
   const pastHtml     = [];
 
   weeks.forEach((w, i) => {
-    const weekEndDate = parseWeekEnd(w.label);
+    const weekEndDate = w.weekEndDate;
     const isPast      = weekEndDate && weekEndDate < todayMidnight;
     const collapsedClass = 'collapsed';
     const pastBadge   = isPast ? '<span class="week-past-badge">PAST</span>' : '';
@@ -1263,7 +1263,7 @@ function groupByWeeks(dues) {
     const weekStart=new Date(cur), weekEnd=new Date(cur); weekEnd.setDate(weekEnd.getDate()+6);
     const wsStr = dateToYMD(weekStart), weStr = dateToYMD(weekEnd);
     const weekDues = dues.filter(d => d.dueDate >= wsStr && d.dueDate <= weStr);
-    if (weekDues.length) weeks.push({ label:fmtRange(weekStart,weekEnd), total:weekDues.reduce((s,d)=>s+d.amount,0), count:weekDues.length, dues:weekDues });
+    if (weekDues.length) weeks.push({ label:fmtRange(weekStart,weekEnd), weekEndDate:new Date(weekEnd), total:weekDues.reduce((s,d)=>s+d.amount,0), count:weekDues.length, dues:weekDues });
     cur.setDate(cur.getDate()+7);
   }
   return weeks;
