@@ -1249,7 +1249,7 @@ function parseWeekEnd(label) {
     return null;
   } catch(e) { return null; }
 }
-function dateToYMD(d) {
+  function dateToYMD(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 function groupByWeeks(dues) {
