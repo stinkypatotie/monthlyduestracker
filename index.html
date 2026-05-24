@@ -1240,11 +1240,11 @@ function toggleWeekCard(i) {
 function parseWeekEnd(label) {
   try {
     const mo = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    let m = label.match(/^(\w+)\s+\d+\s*[–-]\s*(\d+),\s*(\d{4})$/);
+    let m = label.match(/^(\w+)\s+\d+\s*[-–]\s*(\d+),\s*(\d{4})$/);
     if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    m = label.match(/^\w+\s+\d+\s*[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
+    m = label.match(/^\w+\s+\d+\s*[-–]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
     if (m) return new Date(+m[3], mo[m[1]], +m[2]);
-    m = label.match(/[–-]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
+    m = label.match(/[-–]\s*(\w+)\s+(\d+),\s*(\d{4})$/);
     if (m) return new Date(+m[3], mo[m[1]], +m[2]);
     return null;
   } catch(e) { return null; }
