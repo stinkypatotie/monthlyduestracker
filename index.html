@@ -418,6 +418,21 @@ body.light .week-card:hover { border-color: #8fa0c0; }
 /* IMPORT BUTTON */
 .import-sheet-btn { height: 36px; padding: 0 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: border-color .2s, color .2s; white-space: nowrap; }
 .import-sheet-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* RECURRING BUTTON */
+.recurring-btn { height: 36px; padding: 0 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: border-color .2s, color .2s; white-space: nowrap; }
+.recurring-btn:hover { border-color: #a855f7; color: #c084fc; }
+
+/* RECURRING MODAL ITEMS */
+.rec-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 14px; gap: 10px; }
+.rec-item-info { flex: 1; min-width: 0; }
+.rec-item-name { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-item-meta { font-size: 0.65rem; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.rec-del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; transition: color .2s; flex-shrink: 0; }
+.rec-del-btn:hover { color: var(--danger); }
+.rec-empty { text-align: center; padding: 20px; color: var(--muted); font-size: 0.78rem; border: 1px dashed var(--border); border-radius: 8px; }
+.apply-rec-btn { width: 100%; padding: 11px; background: #a855f718; border: 1px solid #a855f755; color: #c084fc; border-radius: 9px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.82rem; cursor: pointer; transition: background .2s; margin-top: 4px; }
+.apply-rec-btn:hover { background: #a855f730; }
 </style>
 </head>
 <body>
@@ -461,7 +476,10 @@ body.light .week-card:hover { border-color: #8fa0c0; }
         <span class="page-title">Payment Dues</span>
         <span class="store-pill" id="store-pill" style="display:none"></span>
       </div>
-      <button class="import-sheet-btn" onclick="openImport()">⬇ Import CSV</button>
+      <div style="display:flex;gap:8px;">
+        <button class="recurring-btn" onclick="openRecurring()">↺ Recurring</button>
+        <button class="import-sheet-btn" onclick="openImport()">⬇ Import CSV</button>
+      </div>
     </div>
 
     <div class="add-card">
@@ -570,6 +588,43 @@ body.light .week-card:hover { border-color: #8fa0c0; }
     <div class="picker-list" id="picker-list"></div>
     <button class="send-selected-btn" id="send-selected-btn" onclick="sendToSelected()" disabled>Send to Selected</button>
     <button class="send-all-btn" onclick="sendToAll()">Send to All Recipients</button>
+  </div>
+</div>
+
+<!-- RECURRING ITEMS MODAL -->
+<div class="modal-overlay" id="recurring-overlay" onclick="overlayClose(event,'recurring-overlay')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">↺ Recurring Items</div>
+      <button class="modal-close" onclick="closeRecurring()">✕</button>
+    </div>
+    <div style="font-size:.68rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.8;font-weight:600;color:var(--muted);">
+      Items defined here auto-populate every month. Use <strong style="color:#c084fc">Apply to Month</strong> to stamp entries for the currently viewed month.
+    </div>
+
+    <!-- ADD FORM -->
+    <div style="display:grid;grid-template-columns:1fr 80px 1fr 1fr;gap:10px;margin-bottom:14px;align-items:end;">
+      <div><label style="display:block;font-size:.63rem;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:5px">ITEM / PAYEE</label><input type="text" id="rec-name" placeholder="e.g. Rent"></div>
+      <div><label style="display:block;font-size:.63rem;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:5px">DAY</label><input type="number" id="rec-day" placeholder="8" min="1" max="31"></div>
+      <div><label style="display:block;font-size:.63rem;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:5px">AMOUNT (₱)</label><input type="text" id="rec-amount" placeholder="0.00" oninput="formatAmountInput(this)"></div>
+      <div><label style="display:block;font-size:.63rem;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:5px">MODE</label>
+        <select id="rec-mode">
+          <option value="Cash">Cash</option>
+          <option value="Check">Check</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="GCash">GCash</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <button class="add-btn" onclick="addRecurringItem()" style="width:100%;margin-bottom:18px;">+ ADD RECURRING ITEM</button>
+
+    <!-- LIST -->
+    <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:.7rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Saved Items</div>
+    <div id="rec-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:240px;overflow-y:auto;"></div>
+
+    <!-- APPLY -->
+    <button class="apply-rec-btn" id="rec-apply-btn" onclick="applyRecurringForMonth()">↺ Apply to <span id="rec-apply-label">this month</span></button>
   </div>
 </div>
 
@@ -863,6 +918,7 @@ function localSave(data) { localStorage.setItem(localKey(), JSON.stringify(data)
 let __dbRef = null, __dbCallback = null;
 function loadDues() {
   if (!currentStore || !currentUID) return;
+  loadRecurringItems();
   if (__dbRef && __dbCallback) { __dbRef.off('value', __dbCallback); __dbRef = null; __dbCallback = null; }
   try {
     __dbRef = firebase.database().ref(`dues/${currentStore}`);
@@ -1313,6 +1369,139 @@ let toastTimer;
 function showToast(msg, type='info') {
   const t=document.getElementById('toast'); t.textContent=msg; t.className='show '+type;
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.className='';},3500);
+}
+
+// ══════════════════════════════════════════════════════
+// RECURRING ITEMS
+// ══════════════════════════════════════════════════════
+let recurringItems = [];
+let __recRef = null, __recCallback = null;
+
+function loadRecurringItems() {
+  if (!currentStore || !currentUID || currentUID === 'local-user') {
+    try { recurringItems = JSON.parse(localStorage.getItem('recurring_' + currentStore) || '[]'); } catch(e) { recurringItems = []; }
+    return;
+  }
+  if (__recRef && __recCallback) { __recRef.off('value', __recCallback); __recRef = null; __recCallback = null; }
+  __recRef = firebase.database().ref(`recurringItems/${currentStore}`);
+  __recCallback = __recRef.on('value', snap => {
+    const data = snap.val();
+    recurringItems = data ? Object.entries(data).map(([id,v]) => ({id,...v})) : [];
+  });
+}
+
+function openRecurring() {
+  if (!currentStore) { showToast('Select a store first.', 'error'); return; }
+  loadRecurringItems();
+  document.getElementById('rec-apply-label').textContent = MONTHS[viewMonth] + ' ' + viewYear;
+  renderRecurringList();
+  document.getElementById('recurring-overlay').classList.add('open');
+}
+function closeRecurring() { document.getElementById('recurring-overlay').classList.remove('open'); }
+
+function renderRecurringList() {
+  const el = document.getElementById('rec-list');
+  if (!recurringItems.length) {
+    el.innerHTML = '<div class="rec-empty">No recurring items yet. Add one above.</div>';
+    return;
+  }
+  const modeColors = { Cash:'var(--success)', Check:'var(--accent)', 'Bank Transfer':'#60a5fa', GCash:'#c084fc', Other:'var(--muted)' };
+  el.innerHTML = recurringItems.map(r => `
+    <div class="rec-item">
+      <div class="rec-item-info">
+        <div class="rec-item-name">${escHtml(r.name)}</div>
+        <div class="rec-item-meta">
+          Every <strong style="color:var(--text)">${r.day}${ordinal(r.day)}</strong> of the month &nbsp;·&nbsp;
+          <strong style="color:var(--accent)">₱${formatPeso(r.amount)}</strong> &nbsp;·&nbsp;
+          <strong style="color:${modeColors[r.mode]||'var(--muted)'}">${escHtml(r.mode)}</strong>
+        </div>
+      </div>
+      <button class="rec-del-btn" onclick="deleteRecurringItem('${r.id}')">✕</button>
+    </div>`).join('');
+}
+
+function ordinal(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return s[(v-20)%10] || s[v] || s[0];
+}
+
+async function addRecurringItem() {
+  const name   = document.getElementById('rec-name').value.trim();
+  const day    = parseInt(document.getElementById('rec-day').value, 10);
+  const amtRaw = document.getElementById('rec-amount').value.replace(/,/g,'');
+  const mode   = document.getElementById('rec-mode').value;
+  if (!name)            { showToast('Enter an item name.', 'error'); return; }
+  if (isNaN(day)||day<1||day>31) { showToast('Enter a valid day (1–31).', 'error'); return; }
+  const amount = parseFloat(amtRaw);
+  if (isNaN(amount)||amount<=0) { showToast('Enter a valid amount.', 'error'); return; }
+  const item = { name, day, amount, mode, store: currentStore, createdAt: new Date().toISOString() };
+  try {
+    if (currentUID && currentUID !== 'local-user') {
+      await firebase.database().ref(`recurringItems/${currentStore}`).push(item);
+    } else {
+      item.id = 'local_rec_' + Date.now();
+      recurringItems.push(item);
+      localStorage.setItem('recurring_' + currentStore, JSON.stringify(recurringItems));
+    }
+    document.getElementById('rec-name').value = '';
+    document.getElementById('rec-day').value  = '';
+    document.getElementById('rec-amount').value = '';
+    document.getElementById('rec-mode').value = 'Cash';
+    renderRecurringList();
+    showToast('Recurring item saved! ✅', 'success');
+  } catch(e) { showToast('Error saving: ' + e.message, 'error'); }
+}
+
+async function deleteRecurringItem(id) {
+  if (!confirm('Remove this recurring item?')) return;
+  try {
+    if (currentUID && currentUID !== 'local-user' && !id.startsWith('local_')) {
+      await firebase.database().ref(`recurringItems/${currentStore}/${id}`).remove();
+    } else {
+      recurringItems = recurringItems.filter(r => r.id !== id);
+      localStorage.setItem('recurring_' + currentStore, JSON.stringify(recurringItems));
+    }
+    renderRecurringList();
+    showToast('Removed.', 'info');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function applyRecurringForMonth() {
+  if (!recurringItems.length) { showToast('No recurring items defined.', 'error'); return; }
+  const btn = document.getElementById('rec-apply-btn');
+  btn.disabled = true; btn.textContent = 'Applying…';
+  let added = 0, skipped = 0;
+  for (const r of recurringItems) {
+    // Clamp day to last valid day of the month
+    const lastDay = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const day = Math.min(r.day, lastDay);
+    const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    // Duplicate check
+    const isDup = allDues.some(d =>
+      d.dueDate === dateStr &&
+      d.amount  === r.amount &&
+      d.supplier.trim().toLowerCase() === r.name.toLowerCase() &&
+      d.mode    === r.mode
+    );
+    if (isDup) { skipped++; continue; }
+    const entry = { store: currentStore, dueDate: dateStr, amount: r.amount, supplier: r.name, mode: r.mode, createdAt: new Date().toISOString() };
+    try {
+      if (currentUID && currentUID !== 'local-user') {
+        await firebase.database().ref(`dues/${currentStore}`).push(entry);
+      } else {
+        entry.id = 'local_' + Date.now() + '_' + added;
+        allDues.push(entry);
+      }
+      added++;
+    } catch(e) { skipped++; }
+  }
+  if (currentUID === 'local-user') { allDues.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)); localSave(allDues); renderTable(); renderSidebar(); }
+  btn.disabled = false; btn.innerHTML = '↺ Apply to <span id="rec-apply-label">' + MONTHS[viewMonth] + ' ' + viewYear + '</span>';
+  closeRecurring();
+  const msg = added
+    ? `Applied ${added} item${added!==1?'s':''} to ${MONTHS[viewMonth]} ${viewYear}!${skipped?' ('+skipped+' skipped — already exist)':''} ✅`
+    : `All items already exist for ${MONTHS[viewMonth]} ${viewYear}. Nothing added.`;
+  showToast(msg, added ? 'success' : 'info');
 }
 
 // ══════════════════════════════════════════════════════
