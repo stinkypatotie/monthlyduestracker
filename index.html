@@ -928,6 +928,7 @@ function loadDues() {
       allDues.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
       renderTable(); renderSidebar();
       checkWeeklyBackup();
+      autoApplyRecurring(viewYear, viewMonth);
     }, e => {
       console.warn('RTDB error:', e.message);
       if (e.message && e.message.toLowerCase().includes('permission')) showToast('⚠ Firebase permission denied.', 'error');
@@ -1351,6 +1352,7 @@ function changeMonth(dir) {
   if (viewMonth>11) { viewMonth=0; viewYear++; }
   if (viewMonth<0)  { viewMonth=11; viewYear--; }
   renderTable();
+  autoApplyRecurring(viewYear, viewMonth);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1464,6 +1466,33 @@ async function deleteRecurringItem(id) {
     renderRecurringList();
     showToast('Removed.', 'info');
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function autoApplyRecurring(year, month) {
+  if (!recurringItems.length || !currentStore || !currentUID) return;
+  for (const r of recurringItems) {
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const day = Math.min(r.day, lastDay);
+    const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isDup = allDues.some(d =>
+      d.dueDate === dateStr &&
+      d.amount  === r.amount &&
+      d.supplier.trim().toLowerCase() === r.name.toLowerCase() &&
+      d.mode    === r.mode
+    );
+    if (isDup) continue;
+    const entry = { store: currentStore, dueDate: dateStr, amount: r.amount, supplier: r.name, mode: r.mode, createdAt: new Date().toISOString() };
+    try {
+      if (currentUID && currentUID !== 'local-user') {
+        await firebase.database().ref(`dues/${currentStore}`).push(entry);
+      } else {
+        entry.id = 'local_' + Date.now() + '_auto';
+        allDues.push(entry);
+        allDues.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+        localSave(allDues); renderTable(); renderSidebar();
+      }
+    } catch(e) { console.warn('autoApplyRecurring error:', e.message); }
+  }
 }
 
 async function applyRecurringForMonth() {
